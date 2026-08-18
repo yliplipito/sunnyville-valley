@@ -364,10 +364,12 @@ export class QuestManager {
   initNoticeBoardListener() {
     const modal = document.getElementById('notice-board-modal');
     const closeBtn = document.getElementById('notice-board-close-btn');
+    this.noticeModalOpenedTime = 0;
 
     const closeModal = () => {
       if (modal && !modal.classList.contains('hidden')) {
         modal.classList.add('hidden');
+        window.lastDialogueClosedTime = Date.now();
         try {
           const wrap = document.getElementById('canvas-wrapper');
           wrap?.requestPointerLock?.()?.catch?.(() => {});
@@ -385,7 +387,8 @@ export class QuestManager {
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     window.addEventListener('keydown', (e) => {
       if (modal && !modal.classList.contains('hidden')) {
-        if (e.code === 'KeyE' || e.code === 'Escape' || e.code === 'Enter') {
+        if (Date.now() - this.noticeModalOpenedTime < 250) return;
+        if (e.code === 'KeyE' || e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') {
           e.preventDefault();
           closeModal();
         }
@@ -509,6 +512,7 @@ export class QuestManager {
     }
 
     if (modal) {
+      this.noticeModalOpenedTime = Date.now();
       modal.classList.remove('hidden');
       try {
         document.exitPointerLock?.();

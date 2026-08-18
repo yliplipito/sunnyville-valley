@@ -832,8 +832,13 @@ export class EntityManager3D {
         }
 
         if (dist < 18.0) {
-          const targetAngle = Math.atan2(dx, dz);
-          npc.head.rotation.y = THREE.MathUtils.lerp(npc.head.rotation.y, targetAngle, delta * 3.5);
+          const targetWorldAngle = Math.atan2(dx, dz);
+          const localTargetAngle = targetWorldAngle - (npc.group.rotation.y || 0);
+          const normAngle = Math.atan2(Math.sin(localTargetAngle), Math.cos(localTargetAngle));
+          const clampedAngle = Math.max(-1.3, Math.min(1.3, normAngle));
+          npc.head.rotation.y = THREE.MathUtils.lerp(npc.head.rotation.y, clampedAngle, delta * 4.0);
+        } else {
+          npc.head.rotation.y = THREE.MathUtils.lerp(npc.head.rotation.y, 0, delta * 2.0);
         }
       }
 

@@ -146,8 +146,9 @@ export class Controls3D {
         }
         break;
       case 'KeyE':
+        const modalOpen = !document.getElementById('notice-board-modal')?.classList.contains('hidden');
         const timeSinceCloseE = Date.now() - (window.lastDialogueClosedTime || 0);
-        if (this.hoveredObject && timeSinceCloseE > 300 && window.onInteract) {
+        if (this.hoveredObject && timeSinceCloseE > 300 && !modalOpen && window.onInteract) {
           window.onInteract(this.hoveredObject);
         }
         break;

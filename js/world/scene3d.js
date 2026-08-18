@@ -1215,31 +1215,55 @@ export class WorldScene3D {
 
     const flagColors = [0xEF4444, 0xF59E0B, 0x10B981, 0x3B82F6, 0xEC4899, 0x8B5CF6];
 
+    // Shared flag shape (cute triangular banner)
+    const flagShape = new THREE.Shape();
+    flagShape.moveTo(-0.16, 0);
+    flagShape.lineTo(0.16, 0);
+    flagShape.lineTo(0, -0.38);
+    flagShape.closePath();
+    const flagGeo = new THREE.ShapeGeometry(flagShape);
+
     for (let i = 0; i < lampCoords.length - 1; i++) {
       const p1 = lampCoords[i];
       const p2 = lampCoords[i + 1];
-      const numFlags = 7;
+      const dx = p2.x - p1.x;
+      const dz = p2.z - p1.z;
+      const spanAngle = Math.atan2(dx, dz);
 
+      // 1. Catenary hanging string line
+      const stringPoints = [];
+      const numSegments = 16;
+      for (let s = 0; s <= numSegments; s++) {
+        const st = s / numSegments;
+        const sx = p1.x + dx * st;
+        const sz = p1.z + dz * st;
+        const ssag = Math.sin(st * Math.PI) * 0.42;
+        stringPoints.push(new THREE.Vector3(sx, 3.85 - ssag, sz));
+      }
+      const stringGeo = new THREE.BufferGeometry().setFromPoints(stringPoints);
+      const stringMat = new THREE.LineBasicMaterial({ color: 0x94A3B8, linewidth: 2 });
+      const stringLine = new THREE.Line(stringGeo, stringMat);
+      this.scene.add(stringLine);
+
+      // 2. Hanging pennant flags along the curve
+      const numFlags = 7;
       for (let f = 1; f <= numFlags; f++) {
         const t = f / (numFlags + 1);
-        const fx = p1.x + (p2.x - p1.x) * t;
-        const fz = p1.z + (p2.z - p1.z) * t;
-        // Catenary sag curve
-        const sag = Math.sin(t * Math.PI) * 0.45;
-        const fy = 3.6 - sag;
+        const fx = p1.x + dx * t;
+        const fz = p1.z + dz * t;
+        const sag = Math.sin(t * Math.PI) * 0.42;
+        const fy = 3.85 - sag;
 
         const flagMat = new THREE.MeshLambertMaterial({
           color: flagColors[(i * numFlags + f) % flagColors.length],
           side: THREE.DoubleSide
         });
 
-        // Upside-down triangular pennant flag
-        const flagGeo = new THREE.ConeGeometry(0.22, 0.42, 3);
         const flag = new THREE.Mesh(flagGeo, flagMat);
-        flag.rotation.x = Math.PI;
-        flag.position.set(fx, fy - 0.21, fz);
+        flag.position.set(fx, fy, fz);
+        flag.rotation.y = spanAngle + Math.PI / 2;
         this.scene.add(flag);
-        this.buntingFlags.push({ mesh: flag, origY: fy - 0.21, origColor: flagMat.color.getHex() });
+        this.buntingFlags.push({ mesh: flag, origY: fy, origColor: flagMat.color.getHex() });
       }
     }
   }

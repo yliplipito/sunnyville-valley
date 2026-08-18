@@ -257,6 +257,11 @@ export class DialogueSystem {
 
     this.isOpen = true;
     window.inDialogue = true;
+    const promptEl = document.getElementById('interact-prompt');
+    if (promptEl) promptEl.classList.add('hidden');
+    const crosshair = document.getElementById('crosshair');
+    if (crosshair) crosshair.classList.remove('hovering-target');
+
     this.currentLines = Array.isArray(lines) ? lines : [lines];
     this.lineIndex = 0;
     this.currentPitch = pitch;
