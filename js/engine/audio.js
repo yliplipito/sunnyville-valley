@@ -724,6 +724,60 @@ export class AudioManager {
     } catch (e) {}
   }
 
+  playJumpscareRoar() {
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+    try {
+      // 1. Sub-bass visceral thud
+      const sub = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
+      sub.type = 'sawtooth';
+      sub.frequency.setValueAtTime(140, t);
+      sub.frequency.exponentialRampToValueAtTime(30, t + 0.8);
+      subGain.gain.setValueAtTime(0.95, t);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+      sub.connect(subGain);
+      subGain.connect(this.masterGain);
+      sub.start(t);
+      sub.stop(t + 0.9);
+
+      // 2. Piercing demonic screech / glitch distortion
+      const screech = this.ctx.createOscillator();
+      const sGain = this.ctx.createGain();
+      screech.type = 'sawtooth';
+      screech.frequency.setValueAtTime(880, t);
+      screech.frequency.linearRampToValueAtTime(2200, t + 0.15);
+      screech.frequency.exponentialRampToValueAtTime(160, t + 0.75);
+      sGain.gain.setValueAtTime(0.85, t);
+      sGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+      screech.connect(sGain);
+      sGain.connect(this.masterGain);
+      screech.start(t);
+      screech.stop(t + 0.85);
+
+      // 3. Harsh distorted white noise blast
+      const bSize = Math.floor(this.ctx.sampleRate * 0.7);
+      const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.25));
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const nFilter = this.ctx.createBiquadFilter();
+      nFilter.type = 'bandpass';
+      nFilter.frequency.setValueAtTime(1800, t);
+      nFilter.Q.setValueAtTime(2.0, t);
+      const nGain = this.ctx.createGain();
+      nGain.gain.setValueAtTime(0.9, t);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
+      noise.connect(nFilter);
+      nFilter.connect(nGain);
+      nGain.connect(this.masterGain);
+      noise.start(t);
+    } catch (e) {}
+  }
+
   playDogBark() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;

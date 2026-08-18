@@ -353,13 +353,13 @@ export class ScareManager {
   }
 
   /**
-   * THE DEFINITIVE 3D ANIMATED CLIMAX ENDING:
-   * 1. Locks player controls smoothly
-   * 2. Smoothly glides camera to well rim overlooking the void
-   * 3. Planks slide aside smoothly to reveal the deep bottomless abyss
-   * 4. Resonant atmospheric audio swell
-   * 5. Smooth camera plunge down into the darkness
-   * 6. Clean cinematic fade to black and restart card
+   * THE ULTIMATE WELL CLIMAX JUMPSCARE ENDING:
+   * 1. Locks controls & snaps camera towards the unsealed well
+   * 2. Well planks violently burst and explode apart in 3D
+   * 3. Horrifying uncanny nightmare face lunges directly into the screen
+   * 4. Bone-chilling visceral jumpscare roar and violent screen tremor
+   * 5. Instant slam-cut to 100% pitch black silence
+   * 6. Quiet void aftermath, then reveals the loop restart card
    */
   triggerFullEndingClimax() {
     if (window.inNightmareEnding) return;
@@ -381,81 +381,66 @@ export class ScareManager {
     const camera = window.gameCamera;
     const world = window.worldScene;
 
-    if (this.audio) {
-      this.audio.playSubtlePressureDrop();
-      this.audio.playTapeWarble();
+    // 1. Snap camera directly facing the well opening
+    if (camera) {
+      camera.position.set(0, 1.8, -40.5);
+      camera.lookAt(0, 1.5, -44.0);
     }
 
-    const startTime = performance.now();
-    const startCamPos = camera ? camera.position.clone() : new THREE.Vector3(0, 1.8, -38.0);
-    const targetCamPos = new THREE.Vector3(0, 1.85, -41.5);
-    const targetLookAt = new THREE.Vector3(0, 0.4, -44.0);
-
+    // 2. Explode the well planks apart violently in 3D
     const wellPlanks = world?.wellPlanks || [];
-    let hasTriggeredBlackout = false;
+    if (wellPlanks[0]) {
+      wellPlanks[0].position.set(-2.6, 2.8, 0.8);
+      wellPlanks[0].rotation.set(-0.6, 0.4, -1.4);
+    }
+    if (wellPlanks[1]) {
+      wellPlanks[1].position.set(2.6, 2.8, -0.8);
+      wellPlanks[1].rotation.set(0.6, -0.4, 1.4);
+    }
 
-    const animateEnding = () => {
-      const now = performance.now();
-      const elapsed = (now - startTime) / 1000;
+    // 3. Audio: Visceral horror jumpscare roar and stinger
+    if (this.audio) {
+      this.audio.playJumpscareRoar();
+    }
 
-      // Phase 1: (0s to 2.4s) Camera glides smoothly up to well rim
-      if (elapsed < 2.4) {
-        const t = elapsed / 2.4;
-        const ease = t * t * (3 - 2 * t);
-        if (camera) {
-          camera.position.lerpVectors(startCamPos, targetCamPos, ease);
-          camera.lookAt(targetLookAt);
-        }
-        requestAnimationFrame(animateEnding);
-        return;
+    // 4. Render terrifying jumpscare face lunging at the screen
+    if (this.scareCanvas && this.scareCtx) {
+      const w = this.scareCanvas.width;
+      const h = this.scareCanvas.height;
+      this.scareCtx.clearRect(0, 0, w, h);
+      this.drawUncannyPhotorealisticFace(w, h);
+      this.scareCanvas.style.opacity = '1';
+      this.scareCanvas.style.transform = 'scale(1.08)';
+    }
+
+    this.triggerScreenTwitch(800);
+
+    const canvasWrap = document.getElementById('canvas-wrapper');
+    if (canvasWrap) {
+      canvasWrap.classList.add('active-twitch');
+    }
+
+    // 5. Intense scare lasts for 750ms, then SLAM CUT TO PITCH BLACK
+    setTimeout(() => {
+      if (this.scareCanvas) {
+        this.scareCanvas.style.opacity = '0';
+        this.scareCanvas.style.transform = 'none';
+      }
+      if (canvasWrap) {
+        canvasWrap.classList.remove('active-twitch');
       }
 
-      // Phase 2: (2.4s to 5.2s) Planks slide apart and camera tilts down into the well void
-      if (elapsed < 5.2) {
-        const t = (elapsed - 2.4) / 2.8;
-        const ease = t * t * (3 - 2 * t);
-
-        // Wooden planks slide smoothly apart
-        wellPlanks.forEach((plank, idx) => {
-          if (plank) {
-            const offset = (idx === 0 ? -1.8 : 1.8) * ease;
-            plank.position.x = offset;
-            plank.rotation.z = (idx === 0 ? -0.4 : 0.4) * ease;
-          }
-        });
-
-        // Camera smoothly moves forward and tilts straight down into the well depth
-        if (camera) {
-          const depthCamPos = new THREE.Vector3(0, 1.6 - ease * 0.9, -42.0 - ease * 1.8);
-          camera.position.copy(depthCamPos);
-          camera.lookAt(0, -4.5, -44.0);
-        }
-
-        requestAnimationFrame(animateEnding);
-        return;
+      if (this.blackOverlay) {
+        this.blackOverlay.style.transition = 'none';
+        this.blackOverlay.classList.add('active');
       }
 
-      // Phase 3: Plunge into Darkness
-      if (!hasTriggeredBlackout) {
-        hasTriggeredBlackout = true;
-
-        if (this.blackOverlay) {
-          this.blackOverlay.classList.add('active');
+      // 6. Sustained quiet pitch-black void for 2.8 seconds, then reveal restart card
+      setTimeout(() => {
+        if (this.endingCard) {
+          this.endingCard.classList.remove('hidden');
         }
-
-        if (this.audio) {
-          this.audio.playBluntImpact();
-        }
-
-        // Phase 4: Sustained darkness before slowly revealing the restart card
-        setTimeout(() => {
-          if (this.endingCard) {
-            this.endingCard.classList.remove('hidden');
-          }
-        }, 3600);
-      }
-    };
-
-    requestAnimationFrame(animateEnding);
+      }, 2800);
+    }, 750);
   }
 }
