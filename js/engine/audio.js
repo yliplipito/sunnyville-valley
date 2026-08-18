@@ -724,76 +724,6 @@ export class AudioManager {
     } catch (e) {}
   }
 
-  playBloodSplatter() {
-    if (!this.ctx || this.isMuted) return;
-    const t = this.ctx.currentTime;
-    try {
-      const bSize = Math.floor(this.ctx.sampleRate * 0.55);
-      const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-
-      for (let i = 0; i < bSize; i++) {
-        const progress = i / bSize;
-        const bubble = Math.sin(i * 0.08) * 0.5 + 0.5;
-        data[i] = (Math.random() * 2 - 1) * (1 - progress) * (0.6 + 0.4 * bubble);
-      }
-
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-
-      const lowpass = this.ctx.createBiquadFilter();
-      lowpass.type = 'lowpass';
-      lowpass.frequency.setValueAtTime(1200, t);
-      lowpass.frequency.exponentialRampToValueAtTime(100, t + 0.5);
-
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.80, t);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
-
-      noise.connect(lowpass);
-      lowpass.connect(gain);
-      gain.connect(this.masterGain);
-
-      noise.start(t);
-    } catch (e) {}
-  }
-
-  startFlatlineBeep() {
-    if (!this.ctx || this.isMuted) return;
-    const t = this.ctx.currentTime;
-    try {
-      if (this.musicGain) this.musicGain.gain.setTargetAtTime(0, t, 0.05);
-      if (this.ambienceGain) this.ambienceGain.gain.setTargetAtTime(0, t, 0.05);
-
-      this.flatlineGain = this.ctx.createGain();
-      this.flatlineGain.gain.setValueAtTime(0.35, t);
-
-      this.flatlineOsc = this.ctx.createOscillator();
-      this.flatlineOsc.type = 'sine';
-      this.flatlineOsc.frequency.setValueAtTime(3950, t);
-
-      this.flatlineOsc.connect(this.flatlineGain);
-      this.flatlineGain.connect(this.masterGain);
-
-      this.flatlineOsc.start(t);
-    } catch (e) {}
-  }
-
-  stopFlatlineBeep(fadeDuration = 2.0) {
-    if (!this.flatlineOsc || !this.flatlineGain || !this.ctx) return;
-    const t = this.ctx.currentTime;
-    try {
-      this.flatlineGain.gain.setTargetAtTime(0.0001, t, fadeDuration / 3);
-      setTimeout(() => {
-        if (this.flatlineOsc) {
-          try { this.flatlineOsc.stop(); } catch (e) {}
-          this.flatlineOsc = null;
-          this.flatlineGain = null;
-        }
-      }, fadeDuration * 1000);
-    } catch (e) {}
-  }
-
   playDogBark() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
@@ -997,16 +927,6 @@ export class AudioManager {
       osc.start(t);
       osc.stop(t + 0.1);
     } catch (e) {}
-  }
-
-  playWishSparkle() {
-    if (!this.ctx || this.isMuted) return;
-    const notes = [587.33, 739.99, 880.00, 1174.66, 1479.98];
-    notes.forEach((freq, idx) => {
-      setTimeout(() => {
-        this.playSoftBell(freq, 0.45, 0.15);
-      }, idx * 60);
-    });
   }
 
   toggleMute() {

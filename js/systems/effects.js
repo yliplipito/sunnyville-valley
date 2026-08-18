@@ -354,17 +354,6 @@ export class ScareManager {
 
   /**
    * THE DEFINITIVE 3D ANIMATED CLIMAX ENDING:
-   * 1. 3D Camera lock & glide looking into the well void
-   * 2. Physical 3D wood splintering (Well planks shake and snap flying apart)
-   * 3. Shadow Stalker emergence sequence
-   * 4. Dynamic camera FOV collapse (70° down to 38°) + screen tremor
-   * 5. First-person collapse animation
-   * 6. Plunge into pitch blackness (#000000)
-   * 7. Sustained continuous tone
-   * 8. Fade into silence, revealing the restart card
-   */
-  /**
-   * THE DEFINITIVE 3D ANIMATED CLIMAX ENDING:
    * 1. Locks player controls smoothly
    * 2. Smoothly glides camera to well rim overlooking the void
    * 3. Planks slide aside smoothly to reveal the deep bottomless abyss
