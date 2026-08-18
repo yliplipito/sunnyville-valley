@@ -414,7 +414,7 @@ export class QuestManager {
       const raw = localStorage.getItem('sunnyville_valley_save');
       if (raw) {
         const state = JSON.parse(raw);
-        if (state && typeof state.currentStep === 'number' && state.currentStep > 0) {
+        if (state && typeof state.currentStep === 'number' && state.currentStep > 0 && state.currentStep < 34) {
           this.currentStep = state.currentStep;
           this.flowersPicked = state.flowersPicked || 0;
           this.petDogCount = state.petDogCount || 0;
@@ -422,6 +422,8 @@ export class QuestManager {
           if (this.corruption && state.targetCorruption) {
             this.corruption.setCorruption(state.targetCorruption);
           }
+        } else if (state && state.currentStep >= 34) {
+          localStorage.removeItem('sunnyville_valley_save');
         }
       }
     } catch (e) {}

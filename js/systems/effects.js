@@ -392,14 +392,15 @@ export class ScareManager {
     const targetLookAt = new THREE.Vector3(0, 0.4, -44.0);
 
     const wellPlanks = world?.wellPlanks || [];
+    let hasTriggeredBlackout = false;
 
     const animateEnding = () => {
       const now = performance.now();
       const elapsed = (now - startTime) / 1000;
 
-      // Phase 1: (0s to 1.8s) Camera glides up to well rim
-      if (elapsed < 1.8) {
-        const t = elapsed / 1.8;
+      // Phase 1: (0s to 2.4s) Camera glides smoothly up to well rim
+      if (elapsed < 2.4) {
+        const t = elapsed / 2.4;
         const ease = t * t * (3 - 2 * t);
         if (camera) {
           camera.position.lerpVectors(startCamPos, targetCamPos, ease);
@@ -409,9 +410,9 @@ export class ScareManager {
         return;
       }
 
-      // Phase 2: (1.8s to 3.5s) Planks slide apart and camera tilts down into the well void
-      if (elapsed < 3.5) {
-        const t = (elapsed - 1.8) / 1.7;
+      // Phase 2: (2.4s to 5.2s) Planks slide apart and camera tilts down into the well void
+      if (elapsed < 5.2) {
+        const t = (elapsed - 2.4) / 2.8;
         const ease = t * t * (3 - 2 * t);
 
         // Wooden planks slide smoothly apart
@@ -425,30 +426,34 @@ export class ScareManager {
 
         // Camera smoothly moves forward and tilts straight down into the well depth
         if (camera) {
-          const depthCamPos = new THREE.Vector3(0, 1.6 - ease * 0.8, -42.8 - ease * 1.0);
+          const depthCamPos = new THREE.Vector3(0, 1.6 - ease * 0.9, -42.0 - ease * 1.8);
           camera.position.copy(depthCamPos);
-          camera.lookAt(0, -3.0, -44.0);
+          camera.lookAt(0, -4.5, -44.0);
         }
 
         requestAnimationFrame(animateEnding);
         return;
       }
 
-      // Phase 3: (3.5s) Plunge into Pitch Blackness
-      if (this.blackOverlay) {
-        this.blackOverlay.classList.add('active');
-      }
+      // Phase 3: Plunge into Darkness
+      if (!hasTriggeredBlackout) {
+        hasTriggeredBlackout = true;
 
-      if (this.audio) {
-        this.audio.playBluntImpact();
-      }
-
-      // Sustains in eerie quiet darkness, then reveals restart card
-      setTimeout(() => {
-        if (this.endingCard) {
-          this.endingCard.classList.remove('hidden');
+        if (this.blackOverlay) {
+          this.blackOverlay.classList.add('active');
         }
-      }, 3200);
+
+        if (this.audio) {
+          this.audio.playBluntImpact();
+        }
+
+        // Phase 4: Sustained darkness before slowly revealing the restart card
+        setTimeout(() => {
+          if (this.endingCard) {
+            this.endingCard.classList.remove('hidden');
+          }
+        }, 3600);
+      }
     };
 
     requestAnimationFrame(animateEnding);

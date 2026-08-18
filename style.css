@@ -243,7 +243,7 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.15s ease;
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pitch-black-overlay.active {
@@ -256,10 +256,15 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  animation: fadeIn 2.0s ease forwards;
+  gap: 18px;
+  animation: endingCardFadeIn 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-width: 600px;
-  padding: 24px;
+  padding: 32px 24px;
+}
+
+@keyframes endingCardFadeIn {
+  0% { opacity: 0; transform: scale(0.94) translateY(15px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .ending-title {

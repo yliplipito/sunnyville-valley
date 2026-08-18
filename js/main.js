@@ -144,9 +144,26 @@ class GameApp {
   initCreditsRestart() {
     const restartBtn = document.getElementById('restart-game-btn');
     if (restartBtn) {
-      restartBtn.addEventListener('click', () => {
-        try { localStorage.removeItem('sunnyville_valley_save'); } catch (e) {}
-        window.location.reload();
+      restartBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        restartBtn.disabled = true;
+        restartBtn.textContent = 'RESTARTING... 🎈';
+        restartBtn.style.opacity = '0.6';
+
+        try {
+          localStorage.removeItem('sunnyville_valley_save');
+          sessionStorage.clear();
+        } catch (err) {}
+
+        const blackOverlay = document.getElementById('pitch-black-overlay');
+        if (blackOverlay) {
+          blackOverlay.style.transition = 'opacity 0.6s ease';
+          blackOverlay.classList.add('active');
+        }
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 650);
       });
     }
   }
