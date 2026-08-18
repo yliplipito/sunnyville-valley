@@ -1,0 +1,6 @@
+# Dependencies & temporary files
+node_modules/
+dist/
+.playwright-mcp/
+.DS_Store
+Thumbs.db

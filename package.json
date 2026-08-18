@@ -1,0 +1,17 @@
+{
+  "name": "sunnyville-valley-game",
+  "version": "1.0.0",
+  "description": "Sunnyville Valley - The happiest, coziest 3D village adventure game! 🌞🌻",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  }
+}
