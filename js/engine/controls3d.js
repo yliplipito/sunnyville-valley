@@ -151,16 +151,6 @@ export class Controls3D {
           window.onInteract(this.hoveredObject);
         }
         break;
-      case 'KeyM':
-        if (window.audioManager) {
-          const muted = window.audioManager.toggleMute();
-          const btn = document.getElementById('sound-btn');
-          if (btn) btn.textContent = muted ? '🔇' : '🔊';
-          if (window.hudManager) {
-            window.hudManager.showToast(muted ? "Sound Muted 🔇" : "Sound Unmuted 🔊");
-          }
-        }
-        break;
     }
   }
 

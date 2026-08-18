@@ -326,7 +326,7 @@ export class WorldScene3D {
     group.userData = {
       interactable: true,
       type: 'fountain',
-      promptText: 'Make a Wish at Fountain [Space / E]'
+      promptText: 'Toss a Coin in Fountain'
     };
     this.fountainGroup = group;
     this.scene.add(group);
@@ -937,7 +937,7 @@ export class WorldScene3D {
     group.userData = {
       interactable: true,
       type: 'well',
-      promptText: 'Inspect Boarded Well [Space / E]'
+      promptText: 'Inspect Boarded Well'
     };
     this.scene.add(group);
     this.interactableObjects.push(group);
@@ -973,7 +973,7 @@ export class WorldScene3D {
     group.userData = {
       interactable: true,
       type: 'balloon',
-      promptText: 'Retrieve Red Balloon [Space / E]',
+      promptText: 'Retrieve Red Balloon',
       isCollected: false
     };
 

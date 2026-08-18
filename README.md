@@ -13,7 +13,7 @@ Explore the charming town square, talk to friendly villagers, pick golden sunflo
 - 🧁 **Baker Benny**: Master baker at Sunshine Bakery famous for fresh warm berry tarts!
 - 👴 **Old Man Gregory**: The wise village elder resting peacefully on the plaza bench.
 - 🎈 **Little Timmy**: An energetic boy who loves playing games and red balloons.
-- 🐶 **Barnaby the Dog**: The friendliest, fluffiest pup in the valley! (Don't forget to give him pets and find his lost squeaky toy!)
+- 🐶 **Buster the Dog**: The friendliest, fluffiest pup in the valley! (Don't forget to give him pets and find his lost squeaky toy!)
 
 ---
 
@@ -24,7 +24,7 @@ Explore the charming town square, talk to friendly villagers, pick golden sunflo
 - **Interact / Talk**: `E` or `Left-Click`
 - **Jump**: `Space`
 - **Sprint**: Hold `Shift`
-- **Sound Toggle**: `M` key or click 🔊 / 🔇 in the top-right corner
+- **Sound Toggle**: Click 🔊 / 🔇 in the top-right corner
 - **Fullscreen**: Click ⛶ for the full immersive experience
 
 ---
