@@ -619,49 +619,100 @@ export class WorldScene3D {
   // --- PET YARD ---
   buildPetYard(x, z) {
     const group = new THREE.Group();
-    const fenceMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+    const postMat = new THREE.MeshLambertMaterial({ color: 0xF8FAFC });
+    const railMat = new THREE.MeshLambertMaterial({ color: 0xE2E8F0 });
 
-    // Front fence slats with open center gate [X: -1.3 to +1.3]
-    for (let i = -4.8; i <= 4.8; i += 1.3) {
-      if (Math.abs(i) > 1.3) {
-        const p = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.25, 0.1), fenceMat);
-        p.position.set(i, 0.62, 4.0);
-        group.add(p);
+    // Helper to build connected fence panel between two points (x1, z1) -> (x2, z2)
+    const addFenceSegment = (x1, z1, x2, z2, picketsCount = 5) => {
+      const dx = x2 - x1;
+      const dz = z2 - z1;
+      const len = Math.hypot(dx, dz);
+      const angle = Math.atan2(dx, dz);
+      const midX = (x1 + x2) / 2;
+      const midZ = (z1 + z2) / 2;
+
+      // Top rail
+      const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, len), railMat);
+      topRail.position.set(midX, 0.95, midZ);
+      topRail.rotation.y = angle;
+      topRail.castShadow = true;
+      group.add(topRail);
+
+      // Bottom rail
+      const btmRail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, len), railMat);
+      btmRail.position.set(midX, 0.35, midZ);
+      btmRail.rotation.y = angle;
+      btmRail.castShadow = true;
+      group.add(btmRail);
+
+      // Vertical pickets
+      for (let i = 0; i <= picketsCount; i++) {
+        const t = i / picketsCount;
+        const px = x1 + dx * t;
+        const pz = z1 + dz * t;
+        const picket = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.15, 0.05), postMat);
+        picket.position.set(px, 0.58, pz);
+        picket.rotation.y = angle;
+        picket.castShadow = true;
+        group.add(picket);
+
+        // Pointed picket top
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.16, 4), postMat);
+        cap.position.set(px, 1.20, pz);
+        cap.rotation.y = angle + Math.PI / 4;
+        group.add(cap);
       }
+    };
 
-      const sideP = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.25, 0.22), fenceMat);
-      sideP.position.set(-4.8, 0.62, i);
-      group.add(sideP);
+    // Left fence: (-4.8, 4.0) to (-4.8, -4.8)
+    addFenceSegment(-4.8, 4.0, -4.8, -4.8, 9);
+    // Right fence: (4.8, 4.0) to (4.8, -4.8)
+    addFenceSegment(4.8, 4.0, 4.8, -4.8, 9);
+    // Back fence: (-4.8, -4.8) to (4.8, -4.8)
+    addFenceSegment(-4.8, -4.8, 4.8, -4.8, 10);
+    // Front left fence: (-4.8, 4.0) to (-1.5, 4.0)
+    addFenceSegment(-4.8, 4.0, -1.5, 4.0, 4);
+    // Front right fence: (1.5, 4.0) to (4.8, 4.0)
+    addFenceSegment(1.5, 4.0, 4.8, 4.0, 4);
 
-      const sidePR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.25, 0.22), fenceMat);
-      sidePR.position.set(4.8, 0.62, i);
-      group.add(sidePR);
-
-      const backP = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.25, 0.1), fenceMat);
-      backP.position.set(i, 0.62, -4.8);
-      group.add(backP);
-    }
+    // Sturdy gate entrance posts
+    [-1.5, 1.5].forEach(gx => {
+      const gatePost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 1.35, 0.24), postMat);
+      gatePost.position.set(gx, 0.68, 4.0);
+      gatePost.castShadow = true;
+      group.add(gatePost);
+      const postCap = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), postMat);
+      postCap.position.set(gx, 1.42, 4.0);
+      group.add(postCap);
+    });
 
     // Dog House
-    const doghouse = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.4, 3.2), new THREE.MeshLambertMaterial({ color: 0xDC2626 }));
-    doghouse.position.set(2.4, 1.2, -1.2);
+    const doghouse = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, 2.8), new THREE.MeshLambertMaterial({ color: 0xDC2626 }));
+    doghouse.position.set(2.4, 1.1, -1.8);
+    doghouse.castShadow = true;
     group.add(doghouse);
 
-    const dogRoof = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.8, 4), new THREE.MeshLambertMaterial({ color: 0x451A03 }));
+    const dogRoof = new THREE.Mesh(new THREE.ConeGeometry(2.5, 1.6, 4), new THREE.MeshLambertMaterial({ color: 0x451A03 }));
     dogRoof.rotation.y = Math.PI / 4;
-    dogRoof.position.set(2.4, 3.0, -1.2);
+    dogRoof.position.set(2.4, 2.8, -1.8);
+    dogRoof.castShadow = true;
     group.add(dogRoof);
+
+    // Dog Doorway Arch
+    const doorway = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.2), new THREE.MeshLambertMaterial({ color: 0x1E293B }));
+    doorway.position.set(2.4, 0.7, -0.38);
+    group.add(doorway);
 
     group.position.set(x, 0, z);
     this.scene.add(group);
 
     // Fence Perimeter Collision (Leaves open center gate from x-1.6 to x+1.6)
-    this.collisionObstacles.push({ type: 'box', minX: x - 5.0, maxX: x - 1.6, minZ: z + 3.8, maxZ: z + 4.2 }); // Front left fence
-    this.collisionObstacles.push({ type: 'box', minX: x + 1.6, maxX: x + 5.0, minZ: z + 3.8, maxZ: z + 4.2 }); // Front right fence
-    this.collisionObstacles.push({ type: 'box', minX: x - 5.1, maxX: x - 4.6, minZ: z - 5.0, maxZ: z + 4.0 }); // Left fence
-    this.collisionObstacles.push({ type: 'box', minX: x + 4.6, maxX: x + 5.1, minZ: z - 5.0, maxZ: z + 4.0 }); // Right fence
-    this.collisionObstacles.push({ type: 'box', minX: x - 5.0, maxX: x + 5.0, minZ: z - 5.1, maxZ: z - 4.6 }); // Back fence
-    this.collisionObstacles.push({ type: 'box', minX: x + 0.9, maxX: x + 3.9, minZ: z - 2.8, maxZ: z + 0.4 }); // Doghouse
+    this.collisionObstacles.push({ type: 'box', minX: x - 5.0, maxX: x - 1.5, minZ: z + 3.8, maxZ: z + 4.2 }); // Front left fence
+    this.collisionObstacles.push({ type: 'box', minX: x + 1.5, maxX: x + 5.0, minZ: z + 3.8, maxZ: z + 4.2 }); // Front right fence
+    this.collisionObstacles.push({ type: 'box', minX: x - 5.0, maxX: x - 4.6, minZ: z - 5.0, maxZ: z + 4.0 }); // Left fence
+    this.collisionObstacles.push({ type: 'box', minX: x + 4.6, maxX: x + 5.0, minZ: z - 5.0, maxZ: z + 4.0 }); // Right fence
+    this.collisionObstacles.push({ type: 'box', minX: x - 5.0, maxX: x + 5.0, minZ: z - 5.0, maxZ: z - 4.6 }); // Back fence
+    this.collisionObstacles.push({ type: 'box', minX: x + 1.0, maxX: x + 3.8, minZ: z - 3.2, maxZ: z - 0.4 }); // Doghouse
   }
 
   buildFoliage() {
@@ -949,19 +1000,19 @@ export class WorldScene3D {
     // Town Square Notice Board
     this.buildTownNoticeBoard(6.8, 11.2);
 
-    // Squeaky Rubber Toy Ball in Open Lawn near Pet Yard
-    this.buildDogBall(-18.5, -10.0);
+    // Squeaky Rubber Toy Ball in Open Park Lawn
+    this.buildDogBall(-8.0, 16.0);
 
     // Daisy's Green Watering Can near East Planter
     this.buildWateringCan(8.2, 5.2);
 
-    // Bakery Flour Sack outside Happy Mart Front Porch
+    // Bakery Flour Sack outside Happy Mart Front Porch (Sitting on Wooden Mini-Pallet)
     this.buildFlourSack(-20.5, 2.8);
 
-    // Fresh Wildberries Basket near Orchard Trees
+    // Fresh Blueberries Basket near Gazebo Picnic Area
     this.buildBerryBasket(26.5, -6.8);
 
-    // Mayor's Golden Pocket Watch on Plaza Pedestal (East of fountain)
+    // Old Man Gregory's Vintage Pocket Watch on Plaza Pedestal (East of fountain)
     this.buildGoldenWatch(5.6, 2.2);
 
     // Festival Pennant Bunting between Street Lamps
@@ -1012,26 +1063,56 @@ export class WorldScene3D {
 
   buildFlourSack(x, z) {
     const group = new THREE.Group();
-    const sackMat = new THREE.MeshLambertMaterial({ color: 0xD97706 });
-    const tieMat = new THREE.MeshLambertMaterial({ color: 0x78350F });
+    const sackMat = new THREE.MeshLambertMaterial({ color: 0xF5F5F4 }); // Clean linen flour sack
+    const tieMat = new THREE.MeshLambertMaterial({ color: 0x92400E });  // Jute rope tie
+    const woodMat = new THREE.MeshLambertMaterial({ color: 0x78350F }); // Wooden pallet
+    const stampMat = new THREE.MeshLambertMaterial({ color: 0xD97706 }); // Golden wheat stamp
 
-    // Burlap Sack Body
-    const sack = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.42, 0.65, 10), sackMat);
-    sack.position.y = 0.325;
-    sack.castShadow = true;
-    group.add(sack);
+    // Wooden delivery pallet base
+    const pallet = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.09, 0.95), woodMat);
+    pallet.position.y = 0.045;
+    pallet.castShadow = true;
+    group.add(pallet);
 
-    // Tied Neck
-    const neck = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 6, 10), tieMat);
-    neck.position.y = 0.62;
+    // Bulging plump sack body
+    const basePouch = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), sackMat);
+    basePouch.position.y = 0.38;
+    basePouch.scale.set(1.1, 0.9, 1.0);
+    basePouch.castShadow = true;
+    group.add(basePouch);
+
+    const midBody = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.44, 0.45, 12), sackMat);
+    midBody.position.y = 0.45;
+    midBody.castShadow = true;
+    group.add(midBody);
+
+    // Stamped golden wheat badge on sack face
+    const stamp = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.28, 0.02), stampMat);
+    stamp.position.set(0, 0.45, 0.44);
+    group.add(stamp);
+
+    // Tied Jute Rope Neck
+    const neck = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.04, 6, 12), tieMat);
+    neck.position.y = 0.68;
     neck.rotation.x = Math.PI / 2;
     group.add(neck);
+
+    // Flared Ruffled Top with white flour dusting
+    const flaredTop = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.24, 10), sackMat);
+    flaredTop.position.y = 0.80;
+    flaredTop.castShadow = true;
+    group.add(flaredTop);
+
+    const flourDust = new THREE.Mesh(new THREE.CircleGeometry(0.22, 8), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
+    flourDust.rotation.x = -Math.PI / 2;
+    flourDust.position.y = 0.81;
+    group.add(flourDust);
 
     group.position.set(x, 0, z);
     group.userData = {
       interactable: true,
       type: 'flour_sack',
-      promptText: 'Pick up Bakery Flour Sack',
+      promptText: 'Pick up Sack of Flour',
       isCollected: false
     };
 
@@ -1043,8 +1124,8 @@ export class WorldScene3D {
   buildBerryBasket(x, z) {
     const group = new THREE.Group();
     const wickerMat = new THREE.MeshLambertMaterial({ color: 0x92400E });
-    const berryMat = new THREE.MeshLambertMaterial({ color: 0xDC2626 });
-    const blueMat = new THREE.MeshLambertMaterial({ color: 0x2563EB });
+    const blueMat = new THREE.MeshLambertMaterial({ color: 0x3B82F6 });
+    const darkBlueMat = new THREE.MeshLambertMaterial({ color: 0x1E40AF });
 
     // Woven Wicker Basket
     const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.28, 0.35, 12), wickerMat);
@@ -1052,14 +1133,15 @@ export class WorldScene3D {
     basket.castShadow = true;
     group.add(basket);
 
-    // Mounded Berries
-    for (let b = 0; b < 9; b++) {
-      const angle = (b / 9) * Math.PI * 2;
+    // Mounded Blueberries
+    for (let b = 0; b < 12; b++) {
+      const angle = (b / 12) * Math.PI * 2;
+      const dist = (b % 2 === 0) ? 0.18 : 0.09;
       const berry = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 8, 8),
-        (b % 3 === 0) ? blueMat : berryMat
+        new THREE.SphereGeometry(0.075, 8, 8),
+        (b % 2 === 0) ? blueMat : darkBlueMat
       );
-      berry.position.set(Math.cos(angle) * 0.18, 0.32, Math.sin(angle) * 0.18);
+      berry.position.set(Math.cos(angle) * dist, 0.32 + (b % 3) * 0.04, Math.sin(angle) * dist);
       group.add(berry);
     }
 
@@ -1067,7 +1149,7 @@ export class WorldScene3D {
     group.userData = {
       interactable: true,
       type: 'berry_basket',
-      promptText: 'Collect Fresh Wildberries',
+      promptText: 'Pick up Basket of Blueberries',
       isCollected: false
     };
 

@@ -50,7 +50,7 @@ export class EntityManager3D {
     this.npcs.push(timmy);
     this.interactables.push(timmy.group);
 
-    // 5. Barnaby the Golden Retriever Dog (In Pet Yard, X: -22, Z: -12.5)
+    // 5. Buster the Dog (In Pet Yard, X: -22, Z: -12.5)
     const dog = this.createDog(-22, -12.5);
     this.npcs.push(dog);
     this.interactables.push(dog.group);
@@ -70,7 +70,7 @@ export class EntityManager3D {
     canvas.height = 110;
     const ctx = canvas.getContext('2d');
 
-    const drawNameplate = (isCorrupted = false) => {
+    const drawNameplate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Rounded pill badge with subtle drop shadow
@@ -78,8 +78,8 @@ export class EntityManager3D {
       ctx.shadowBlur = 8;
       ctx.shadowOffsetY = 3;
 
-      ctx.fillStyle = isCorrupted ? '#7F1D1D' : bgColor;
-      ctx.strokeStyle = isCorrupted ? '#DC2626' : '#FFFFFF';
+      ctx.fillStyle = bgColor;
+      ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = 5;
 
       const r = 32;
@@ -99,14 +99,14 @@ export class EntityManager3D {
       ctx.stroke();
 
       ctx.shadowColor = 'transparent';
-      ctx.fillStyle = isCorrupted ? '#FCA5A5' : '#FFFFFF';
+      ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 36px "Fredoka", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(`${emojiIcon} ${nameText}`, canvas.width / 2, 55);
     };
 
-    drawNameplate(false);
+    drawNameplate();
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
@@ -119,13 +119,45 @@ export class EntityManager3D {
     if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => {
         if (sprite.userData && sprite.userData.drawNameplate) {
-          sprite.userData.drawNameplate(false);
+          sprite.userData.drawNameplate();
           sprite.userData.texture.needsUpdate = true;
         }
       }).catch(() => {});
     }
 
     return sprite;
+  }
+
+  spawnHeartParticles(x, y, z) {
+    const heartMat = new THREE.MeshLambertMaterial({ color: 0xF472B6 });
+    for (let i = 0; i < 6; i++) {
+      const heart = new THREE.Mesh(new THREE.DodecahedronGeometry(0.14, 0), heartMat);
+      heart.position.set(
+        x + (Math.random() - 0.5) * 0.8,
+        y + 1.2 + (Math.random() - 0.5) * 0.3,
+        z + (Math.random() - 0.5) * 0.8
+      );
+      this.scene.add(heart);
+
+      const startTime = performance.now();
+      const vx = (Math.random() - 0.5) * 0.012;
+      const vz = (Math.random() - 0.5) * 0.012;
+
+      const anim = () => {
+        const elapsed = (performance.now() - startTime) / 1000;
+        if (elapsed < 0.75) {
+          heart.position.y += 0.018;
+          heart.position.x += vx;
+          heart.position.z += vz;
+          heart.scale.multiplyScalar(0.96);
+          requestAnimationFrame(anim);
+        } else {
+          this.scene.remove(heart);
+          heart.geometry.dispose();
+        }
+      };
+      requestAnimationFrame(anim);
+    }
   }
 
   // --- MAYOR BARNABY ---
@@ -260,6 +292,7 @@ export class EntityManager3D {
 
     const hatTop = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.52, 0.38, 16), strawMat);
     hatTop.position.y = 2.22;
+    hatTop.castShadow = true;
     group.add(hatTop);
 
     const hatRibbon = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.09, 16), dressMat);
@@ -484,7 +517,7 @@ export class EntityManager3D {
     return { id: 'timmy', group, head, balloonGroup, nameplate, initialPos: new THREE.Vector3(x, 0, z) };
   }
 
-  // --- BARNABY THE DOG ---
+  // --- BUSTER THE DOG ---
   createDog(x, z) {
     const group = new THREE.Group();
     const furMat = new THREE.MeshLambertMaterial({ color: 0xF59E0B });
@@ -718,22 +751,17 @@ export class EntityManager3D {
     this.stalkerEntity.isVisible = true;
     this.stalkerEntity.spawnTime = Date.now();
 
-    // Auto despawn after 4.5s if not looked at
+    // Auto-despawn quickly (650ms) so it remains a fleeting corner-of-the-eye hallucination
     if (this.stalkerTimeout) clearTimeout(this.stalkerTimeout);
     this.stalkerTimeout = setTimeout(() => {
-      if (this.stalkerEntity && !this.isStalkerChasing) {
-        this.despawnStalker();
-      }
-    }, 4500);
+      this.despawnStalker();
+    }, 650);
   }
 
   despawnStalker() {
     if (!this.stalkerEntity) return;
     this.stalkerEntity.isVisible = false;
     this.stalkerEntity.group.position.set(0, -35, 0);
-    if (window.audioManager) {
-      window.audioManager.playSubtlePressureDrop?.();
-    }
   }
 
   addCuteEyes(parent, y, z) {
@@ -775,42 +803,24 @@ export class EntityManager3D {
 
   setCorruption(ratio) {
     this.corruptionRatio = ratio;
-    const isCorrupted = ratio >= 0.70;
-
-    this.npcs.forEach(npc => {
-      if (npc.nameplate && npc.nameplate.userData?.drawNameplate) {
-        npc.nameplate.userData.drawNameplate(isCorrupted);
-        npc.nameplate.userData.texture.needsUpdate = true;
-      }
-    });
   }
 
   update(delta, playerPos) {
-    const t = Date.now() * 0.003;
+    const t = performance.now() * 0.001;
 
-    // Blinking animation
-    const isBlinking = this.corruptionRatio < 0.75 && (Math.sin(t * 2.2) > 0.95);
-
+    // 1. NPC Idle Animations & Tracking
     this.npcs.forEach(npc => {
-      if (!npc.group.visible) return;
-
-      // 1. Idle Breathing animation
-      npc.group.scale.y = 1.0 + Math.sin(t * 1.5) * 0.02;
-
-      // Eye blinking
-      if (npc.head?.userData?.eyeGroup) {
-        if (this.corruptionRatio >= 0.85) {
-          npc.head.userData.eyeGroup.scale.y = 1.35; // Uncanny unblinking wide eyes
-        } else {
-          npc.head.userData.eyeGroup.scale.y = isBlinking ? 0.08 : 1.0;
-        }
+      // Idle Breathing & gentle sway
+      if (npc.group) {
+        npc.group.position.y = npc.initialPos.y + Math.sin(t * 1.8 + (npc.group.id || 0)) * 0.025;
       }
 
-      // 2. Head-tracking towards player & distance-fading nameplates
-      if (playerPos) {
-        const dist = npc.group.position.distanceTo(playerPos);
+      // Head-tracking towards player & distance-fading nameplates
+      if (npc.head && playerPos) {
+        const dx = playerPos.x - npc.group.position.x;
+        const dz = playerPos.z - npc.group.position.z;
+        const dist = Math.hypot(dx, dz);
 
-        // Nameplate distance fading (fades out beyond 22 meters so it's clean and doesn't clutter)
         if (npc.nameplate) {
           if (dist > 22.0) {
             npc.nameplate.material.opacity = 0;
@@ -821,93 +831,43 @@ export class EntityManager3D {
           }
         }
 
-        if (dist < 14.0 && npc.head) {
-          const dx = playerPos.x - npc.group.position.x;
-          const dz = playerPos.z - npc.group.position.z;
+        if (dist < 18.0) {
           const targetAngle = Math.atan2(dx, dz);
-
-          if (this.corruptionRatio >= 0.75) {
-            // Horrifying 360-degree neck twist tracking
-            const relativeAngle = targetAngle - npc.group.rotation.y;
-            npc.head.rotation.y = relativeAngle;
-          } else {
-            // Natural smooth head turning
-            const relativeAngle = targetAngle - npc.group.rotation.y;
-            npc.head.rotation.y = THREE.MathUtils.clamp(relativeAngle, -0.65, 0.65);
-          }
+          npc.head.rotation.y = THREE.MathUtils.lerp(npc.head.rotation.y, targetAngle, delta * 3.5);
         }
       }
 
-      // 3. Barnaby Dog Animations
-      if (npc.id === 'dog') {
-        if (this.corruptionRatio < 0.25) {
-          // Stage 0: Playful bounding & tail wagging
-          if (npc.tail) npc.tail.rotation.z = Math.sin(t * 8.0) * 0.45;
-          npc.group.position.y = Math.abs(Math.sin(t * 4.0)) * 0.12;
-        } else if (this.corruptionRatio < 0.50) {
-          // Stage 1: Whimpering, ears tilted
-          if (npc.tail) npc.tail.rotation.z = Math.sin(t * 3.0) * 0.15;
-          if (npc.earL) npc.earL.rotation.z = -0.4;
-          if (npc.earR) npc.earR.rotation.z = 0.4;
-        } else if (this.corruptionRatio < 0.75) {
-          // Stage 2: Rigid frozen stare past player's shoulder
-          if (npc.tail) npc.tail.rotation.z = 0;
-          npc.group.rotation.y = -Math.PI / 2.2;
-        } else if (this.corruptionRatio < 0.92) {
-          // Stage 3: Violent shivering
-          npc.group.position.x = npc.initialPos.x + (Math.random() - 0.5) * 0.08;
-          npc.group.position.z = npc.initialPos.z + (Math.random() - 0.5) * 0.08;
-        } else {
-          // Stage 4: Dog vanished, only empty collar remaining in the dirt
-          if (npc.body) npc.body.visible = false;
-          if (npc.head) npc.head.visible = false;
-          if (npc.tail) npc.tail.visible = false;
-          if (npc.earL) npc.earL.visible = false;
-          if (npc.earR) npc.earR.visible = false;
-          if (npc.collar) npc.collar.position.set(0, 0.08, 0);
-          if (npc.nameplate) npc.nameplate.visible = false;
-        }
+      // Buster Dog Tail wagging
+      if (npc.id === 'dog' && npc.tail) {
+        npc.tail.rotation.z = Math.sin(t * 4.5) * 0.35;
       }
 
-      // 4. Timmy Balloon bobbing
+      // Timmy Balloon bobbing
       if (npc.id === 'timmy' && npc.balloonGroup) {
         npc.balloonGroup.position.y = Math.sin(t * 2.0) * 0.08;
         npc.balloonGroup.rotation.z = Math.cos(t * 1.5) * 0.05;
       }
 
-      // 5. Baker Benny Pie Visibility (Disappears once given to player)
+      // Baker Benny Pie Visibility
       if (npc.id === 'baker' && npc.pieGroup) {
         const hasGivenPie = window.questManager?.hasTart || (window.questManager?.currentStep || 0) >= 19;
         npc.pieGroup.visible = !hasGivenPie;
       }
     });
 
-    // 5. Stalker Peripheral Vision Check (Disappears if stared directly at)
-    if (this.stalkerEntity && this.stalkerEntity.isVisible) {
-      if (this.isStalkerChasing && playerPos) {
-        const sp = this.stalkerEntity.group.position;
-        const dx = playerPos.x - sp.x;
-        const dz = playerPos.z - sp.z;
-        const dist = Math.hypot(dx, dz);
-        if (dist > 5.5) {
-          sp.x += (dx / dist) * delta * 2.5;
-          sp.z += (dz / dist) * delta * 2.5;
-        }
-        this.stalkerEntity.group.rotation.y = Math.atan2(dx, dz);
-      } else if (!this.isStalkerChasing && window.camera) {
-        const cam = window.camera;
-        const stalkerPos = this.stalkerEntity.group.position;
-        const camPos = cam.position;
+    // 2. Stalker Fleeting Peripheral Check (Vanishes instantly when glanced at)
+    if (this.stalkerEntity && this.stalkerEntity.isVisible && window.gameCamera) {
+      const cam = window.gameCamera;
+      const stalkerPos = this.stalkerEntity.group.position;
+      const camPos = cam.position;
 
-        const toStalker = new THREE.Vector3().subVectors(stalkerPos, camPos).normalize();
-        const camDir = new THREE.Vector3();
-        cam.getWorldDirection(camDir);
+      const toStalker = new THREE.Vector3().subVectors(stalkerPos, camPos).normalize();
+      const camDir = new THREE.Vector3();
+      cam.getWorldDirection(camDir);
 
-        const dot = camDir.dot(toStalker);
-        // If player centers camera within 30 degrees of the stalker, it immediately vanishes!
-        if (dot > 0.86 && (Date.now() - this.stalkerEntity.spawnTime > 250)) {
-          this.despawnStalker();
-        }
+      const dot = camDir.dot(toStalker);
+      if (dot > 0.65) {
+        this.despawnStalker();
       }
     }
   }

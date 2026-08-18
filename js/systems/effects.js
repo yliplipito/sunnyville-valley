@@ -363,6 +363,15 @@ export class ScareManager {
    * 7. Sustained continuous tone
    * 8. Fade into silence, revealing the restart card
    */
+  /**
+   * THE DEFINITIVE 3D ANIMATED CLIMAX ENDING:
+   * 1. Locks player controls smoothly
+   * 2. Smoothly glides camera to well rim overlooking the void
+   * 3. Planks slide aside smoothly to reveal the deep bottomless abyss
+   * 4. Resonant atmospheric audio swell
+   * 5. Smooth camera plunge down into the darkness
+   * 6. Clean cinematic fade to black and restart card
+   */
   triggerFullEndingClimax() {
     if (window.inNightmareEnding) return;
     window.inNightmareEnding = true;
@@ -381,23 +390,17 @@ export class ScareManager {
     if (pill) pill.classList.add('hidden');
 
     const camera = window.gameCamera;
-    const controls = window.gameControls;
     const world = window.worldScene;
-    const entities = window.entityManager;
 
-    // Phase 1: Smooth Cinematic Camera Track to Well Rim
-    const startTime = performance.now();
-    const targetCamPos = new THREE.Vector3(0, 1.65, -41.2);
-    const startCamPos = camera ? camera.position.clone() : new THREE.Vector3(0, 1.65, -41.2);
-
-    // Position Shadow Specter inside the well depth
-    let stalkerGroup = null;
-    if (entities && entities.stalkerEntity) {
-      stalkerGroup = entities.stalkerEntity.group;
-      stalkerGroup.position.set(0, -1.8, -44.0);
-      stalkerGroup.rotation.y = 0; // Facing North toward player at -41.2
-      entities.stalkerEntity.isVisible = true;
+    if (this.audio) {
+      this.audio.playSubtlePressureDrop();
+      this.audio.playTapeWarble();
     }
+
+    const startTime = performance.now();
+    const startCamPos = camera ? camera.position.clone() : new THREE.Vector3(0, 1.8, -38.0);
+    const targetCamPos = new THREE.Vector3(0, 1.85, -41.5);
+    const targetLookAt = new THREE.Vector3(0, 0.4, -44.0);
 
     const wellPlanks = world?.wellPlanks || [];
 
@@ -405,89 +408,58 @@ export class ScareManager {
       const now = performance.now();
       const elapsed = (now - startTime) / 1000;
 
-      // 0s to 1.4s: Cinematic Glide & Well Planks Splinter
-      if (elapsed < 1.4) {
-        const t = elapsed / 1.4;
-        const ease = t * t * (3 - 2 * t); // Smooth Hermite interpolation
+      // Phase 1: (0s to 1.8s) Camera glides up to well rim
+      if (elapsed < 1.8) {
+        const t = elapsed / 1.8;
+        const ease = t * t * (3 - 2 * t);
         if (camera) {
           camera.position.lerpVectors(startCamPos, targetCamPos, ease);
-          camera.lookAt(0, 0.8, -44.0);
+          camera.lookAt(targetLookAt);
         }
-
-        // Subtly vibrate wooden planks before shattering
-        wellPlanks.forEach((plank, idx) => {
-          if (plank) {
-            plank.rotation.z = Math.sin(now * 0.03 + idx) * 0.05;
-            plank.position.y = 1.52 + Math.sin(now * 0.04 + idx) * 0.02;
-          }
-        });
-
         requestAnimationFrame(animateEnding);
         return;
       }
 
-      // 1.4s to 2.8s: Planks Fly Outward & Specter Emerges from Well
-      if (elapsed < 2.8) {
-        const lungeProgress = (elapsed - 1.4) / 1.4;
-        const lungeEase = Math.pow(lungeProgress, 1.6);
+      // Phase 2: (1.8s to 3.5s) Planks slide apart and camera tilts down into the well void
+      if (elapsed < 3.5) {
+        const t = (elapsed - 1.8) / 1.7;
+        const ease = t * t * (3 - 2 * t);
 
-        // Planks fly outward and spin
+        // Wooden planks slide smoothly apart
         wellPlanks.forEach((plank, idx) => {
           if (plank) {
-            plank.position.y += 0.08;
-            plank.position.x += (idx === 0 ? -0.05 : 0.05);
-            plank.rotation.x += 0.05;
-            plank.rotation.z += 0.04;
+            const offset = (idx === 0 ? -1.8 : 1.8) * ease;
+            plank.position.x = offset;
+            plank.rotation.z = (idx === 0 ? -0.4 : 0.4) * ease;
           }
         });
 
-        // Shadow Specter smoothly rises from the well towards player
-        if (stalkerGroup) {
-          const sz = THREE.MathUtils.lerp(-44.0, -41.5, lungeEase);
-          const sy = THREE.MathUtils.lerp(-1.0, 1.4, lungeEase);
-          stalkerGroup.position.set(0, sy, sz);
-
-          if (entities.stalkerEntity.armL && entities.stalkerEntity.armR) {
-            entities.stalkerEntity.armL.rotation.x = THREE.MathUtils.lerp(0, -Math.PI / 2.5, lungeEase);
-            entities.stalkerEntity.armR.rotation.x = THREE.MathUtils.lerp(0, -Math.PI / 2.5, lungeEase);
-          }
-        }
-
-        // Dramatic FOV collapse
+        // Camera smoothly moves forward and tilts straight down into the well depth
         if (camera) {
-          camera.fov = THREE.MathUtils.lerp(70, 42, lungeEase);
-          camera.updateProjectionMatrix();
-          camera.lookAt(0, 1.4, -41.5);
+          const depthCamPos = new THREE.Vector3(0, 1.6 - ease * 0.8, -42.8 - ease * 1.0);
+          camera.position.copy(depthCamPos);
+          camera.lookAt(0, -3.0, -44.0);
         }
 
         requestAnimationFrame(animateEnding);
         return;
       }
 
-      // 2.8s: FATAL IMPACT & IMMEDIATE CINEMATIC BLACKOUT
-      if (this.audio) {
-        this.audio.playBluntImpact();
-      }
-
-      // Immediate clean plunge into Pitch Blackness
+      // Phase 3: (3.5s) Plunge into Pitch Blackness
       if (this.blackOverlay) {
         this.blackOverlay.classList.add('active');
       }
 
       if (this.audio) {
-        this.audio.startFlatlineBeep();
+        this.audio.playBluntImpact();
       }
 
-      // Sustains in eerie darkness for 4.2s, then reveals restart card
+      // Sustains in eerie quiet darkness, then reveals restart card
       setTimeout(() => {
-        if (this.audio) {
-          this.audio.stopFlatlineBeep(2.2);
-        }
-
         if (this.endingCard) {
           this.endingCard.classList.remove('hidden');
         }
-      }, 4200);
+      }, 3200);
     };
 
     requestAnimationFrame(animateEnding);

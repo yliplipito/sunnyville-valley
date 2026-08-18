@@ -42,14 +42,10 @@ export class DialogueSystem {
     window.addEventListener('keydown', (e) => {
       if (!this.isOpen) return;
 
-      if (e.code === 'KeyE' || e.code === 'Enter') {
+      if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         e.stopPropagation();
         this.advanceDialogue();
-      } else if (e.code === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.closeDialogue();
       }
     });
   }
@@ -64,35 +60,30 @@ export class DialogueSystem {
     if (npcId === 'mayor') {
       if (step === 0) {
         return [
-          "Greetings, wonderful traveler! 🎩 Welcome to Sunnyville Valley!",
-          "I am Mayor Barnaby. Today is our Grand Summer Festival!",
-          "Could you do the honors and ring the Morning Festival Bell at Town Hall?"
+          "Greetings, traveler! 🎩 Welcome to Sunnyville's Grand Summer Festival!",
+          "Could you do the honors and ring the festival bell right behind me?"
         ];
       }
       if (step === 22) {
         return [
-          "My golden pocket watch! You found it! 🎩 Thank you, young friend!",
-          "The afternoon is passing by, though the sun never seems to truly set.",
+          "Splendid afternoon, friend! 🎩",
           "Could you help light the 4 festival lanterns around the town plaza?"
         ];
       }
       if (step === 33) {
         return [
-          "[Mayor Barnaby stands facing away. His head slowly rotates 180 degrees to face you.]",
-          "There you are, citizen. 🎩 The sun has finished weeping.",
-          "The Boarded Well in Whispering Woods has opened. Go to it now."
+          "The sun has set on the valley, citizen. 🎩",
+          "The Boarded Well in the deep woods is unsealed. Go to it now."
         ];
       }
       if (step < 22) {
         return [
-          "A splendid sunny day in the valley, citizen! 🎩",
-          "Enjoy the festival activities and help our lovely neighbors around town!"
+          "A splendid sunny day in the valley, citizen! 🎩 Enjoy the festival activities around town!"
         ];
       }
       if (step < 33) {
         return [
-          "Look at how quiet the plaza has become... 🎩",
-          "The festival will last as long as you stay with us."
+          "Look at how quiet the plaza has become... 🎩 The festival will last as long as you stay with us."
         ];
       }
       return [
@@ -104,48 +95,43 @@ export class DialogueSystem {
     if (npcId === 'daisy') {
       if (step === 4) {
         return [
-          "Hi there, sunshine! 🌻 Isn't today just the most gorgeous day in Sunnyville?",
-          "I'm putting together the Grand Sunshine Bouquet for the festival!",
-          "Could you fetch my green watering can from near the flower planters?"
+          "Hi there, sunshine! 🌻 I'm arranging the Grand Festival Bouquet!",
+          "Could you fetch my green watering can from near the planter box right here?"
         ];
       }
       if (step === 6) {
         return [
-          "Oh, thank you so much for the watering can! 🌻",
-          "Now the flowerbeds will bloom bright! Could you help me pick 3 fresh golden sunflowers around the plaza?"
+          "Thank you so much! 🌻 Now could you help me pick 3 golden sunflowers around the plaza?"
         ];
       }
       if (step === 10) {
         return [
-          "These sunflowers are absolutely radiant! 🌻 Look at that golden glow!",
-          "Thank you! By the way, Buster the dog lost his favorite squeaky toy ball on the lawn near the pet yard.",
-          "Could you go find it and cheer him up?"
+          "These sunflowers look radiant! 🌻",
+          "Buster the dog lost his red squeaky ball across on the park lawn. Could you find it for him?"
         ];
       }
       if (step === 27) {
         return [
-          "The sunflowers... they stopped following the sun. 🌻",
-          "Their petals feel like cold stone. Have you checked on Buster the dog in his yard?"
+          "The sunflowers... their petals feel like cold stone. 🌻 Have you checked on Buster in his yard?"
         ];
       }
       if (step < 4) {
         return [
-          "Hello! 🌻 The flowers love this bright morning light!",
-          "Be sure to check in with Mayor Barnaby at Town Hall!"
+          "Hello! 🌻 The flowers love this bright morning light! Make sure to ring the festival bell first!"
         ];
       }
       if (step > 6 && step < 10) {
         return [
-          "I'm waiting for 3 fresh golden sunflowers to finish the Grand Sunshine Bouquet! 🌻"
+          "I'm waiting for 3 fresh golden sunflowers to finish the bouquet! 🌻"
         ];
       }
       if (step > 10 && step < 27) {
         return [
-          "The bouquet looks wonderful! 🌻 Have you stopped by Sunshine Bakery? Baker Benny's pastries smell delicious!"
+          "The bouquet looks wonderful! 🌻 Baker Benny's pastries smell delicious!"
         ];
       }
       return [
-        "[Daisy gazes quietly into the shadows, clutching her frozen bouquet in absolute silence.]"
+        "[Daisy gazes quietly into the shadows, clutching her frozen bouquet in silence.]"
       ];
     }
 
@@ -153,26 +139,25 @@ export class DialogueSystem {
     if (npcId === 'baker') {
       if (step === 14) {
         return [
-          "Welcome to Sunshine Bakery! 🧁 Fresh blueberry tarts baking for everyone!",
-          "Could you help me grab the flour sack from outside Happy Mart so I can finish the festival batch?"
+          "Welcome to Sunshine Bakery! 🧁 I'm baking fresh blueberry tarts for the festival!",
+          "Could you grab the flour sack sitting outside near Timmy?"
         ];
       }
       if (step === 16) {
         return [
           "Superb! Just what I needed! 🌾",
-          "Now, could you grab a fresh basket of wildberries from the orchard trees by the bakery?"
+          "Now, could you grab a fresh basket of blueberries from by the gazebo?"
         ];
       }
       if (step === 18) {
         return [
-          "Mmm, look at that sweet aroma! 🫐 The wildberry tarts are baked to perfection!",
+          "The blueberry tarts are baked to perfection! 🫐",
           "Here, take this warm blueberry tart to Little Timmy near Happy Mart!"
         ];
       }
       if (step === 25) {
         return [
-          "The ovens have been glowing hot for so long... but my hands feel completely numb.",
-          "Look at the Town Notice Board, friend. There is a new message posted."
+          "The ovens are cooling down... There is a new evening note pinned to the Town Notice Board."
         ];
       }
       if (step < 14) {
@@ -182,7 +167,7 @@ export class DialogueSystem {
       }
       if (step > 18 && step < 25) {
         return [
-          "Timmy is going to love that blueberry tart! 🧁 Take your time enjoying the festival!"
+          "Timmy is going to love that blueberry tart! 🧁 Enjoy the festival!"
         ];
       }
       return [
@@ -195,20 +180,18 @@ export class DialogueSystem {
       if (step === 19) {
         return [
           "Yaaay! 🎈 A warm blueberry tart! Thank you so much!",
-          "This is the best festival ever! Old Man Gregory on the bench loves company, you should go say hi to him!"
+          "Old Man Gregory on the bench wanted to speak with you!"
         ];
       }
       if (step === 24) {
         return [
-          "Look at the street lanterns glow! 🎈 But the shadows look so tall and dark now...",
-          "I think Baker Benny wanted to check in before it gets any darker."
+          "Look at the lanterns glow! 🎈 But the shadows look so long... Baker Benny wanted to see you."
         ];
       }
       if (step === 31) {
         return [
           "You found my red balloon! 🎈 Thank you...",
-          "You can hear it now, can't you? The whispers calling from deep inside Whispering Woods...",
-          "Old Man Gregory knows what is happening. Go speak with him."
+          "The air feels so cold now... Old Man Gregory is waiting on his bench."
         ];
       }
       if (step < 19) {
@@ -222,7 +205,7 @@ export class DialogueSystem {
         ];
       }
       return [
-        "[Little Timmy stands gripping his balloon string. His eyes are hollow and pitch black.]"
+        "[Little Timmy stands gripping his balloon string. His eyes are hollow and quiet.]"
       ];
     }
 
@@ -230,22 +213,25 @@ export class DialogueSystem {
     if (npcId === 'gregory') {
       if (step === 20) {
         return [
-          "Ah, welcome, young traveler! 👴 The breeze feels pleasant on this old bench.",
-          "Say, Mayor Barnaby seems to have misplaced his shiny golden pocket watch on the plaza stand.",
-          "Would you mind fetching it for him?"
+          "Ah, welcome young friend. 👴 The breeze feels pleasant on this old bench.",
+          "I seem to have left my vintage pocket watch on the display stand by the fountain... Would you mind fetching it for me?"
+        ];
+      }
+      if (step === 22) {
+        return [
+          "My pocket watch! 👴 You found it! Thank you kindly, young friend.",
+          "Mayor Barnaby is preparing to illuminate the plaza for the evening. Go speak with him."
         ];
       }
       if (step === 29) {
         return [
-          "The wind has died down completely. 👴 The air is cold as winter stone.",
-          "Little Timmy let go of his red balloon by mistake... it drifted toward the edge of Whispering Woods.",
-          "Could you retrieve it for the poor boy?"
+          "The wind has died down completely. 👴",
+          "Little Timmy let go of his red balloon by mistake... it drifted toward the edge of Whispering Woods. Could you retrieve it for the boy?"
         ];
       }
       if (step === 32) {
         return [
-          "There is nowhere left to run, child. 👴 Look up at the heavens.",
-          "The sun has been swallowed. Go speak with Mayor Barnaby at Town Hall. He is waiting."
+          "The festival gathering is beginning, child. 👴 Go speak with Mayor Barnaby at Town Hall. He is waiting."
         ];
       }
       if (step < 20) {

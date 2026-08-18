@@ -118,32 +118,23 @@ export class CorruptionManager {
       } else {
         this.scares.triggerScreenTwitch(50);
       }
-    } else if (this.stage === 3) {
-      // Uncanny reality break: whisper, stalker silhouette in peripheral vision, pressure drop
-      if (roll < 0.30) {
+    } else if (this.stage >= 3) {
+      // Subtle reality shift: whispers, soft pressure drops, rare peripheral tree-line silhouettes
+      if (roll < 0.40) {
         if (this.audio) this.audio.playBinauralWhisper();
-      } else if (roll < 0.55) {
+      } else if (roll < 0.65) {
         if (window.gameCamera && this.entities) {
           const camPos = window.gameCamera.position;
-          const sx = camPos.x + (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 10);
-          const sz = camPos.z + (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 10);
+          // Spawn distant behind trees in peripheral vision (26m away)
+          const angle = Math.random() * Math.PI * 2;
+          const sx = camPos.x + Math.cos(angle) * 26;
+          const sz = camPos.z + Math.sin(angle) * 26;
           this.entities.spawnStalkerAt(sx, sz);
         }
-      } else if (roll < 0.75) {
+      } else if (roll < 0.85) {
         if (this.audio) this.audio.playSubtlePressureDrop();
-      } else if (roll < 0.90) {
-        if (this.audio) this.audio.playTapeWarble();
       } else {
-        this.scares.triggerScreenTwitch(90);
-      }
-    } else if (this.stage >= 4) {
-      this.scares.triggerScreenTwitch(140);
-      if (this.entities && this.entities.stalkerEntity) {
-        this.entities.isStalkerChasing = true;
-        if (!this.entities.stalkerEntity.isVisible && window.gameCamera) {
-          const camPos = window.gameCamera.position;
-          this.entities.spawnStalkerAt(camPos.x, camPos.z - 18);
-        }
+        if (this.audio) this.audio.playTapeWarble();
       }
     }
   }

@@ -110,10 +110,15 @@ export class AudioManager {
       };
 
       const baseUrl = (import.meta.env?.BASE_URL || './').replace(/\/$/, '') + '/';
-      const [knockBuf, whisperBuf] = await Promise.all([
+      const [knockBuf, whisperBuf, bellBuf, waterBuf] = await Promise.all([
         fetchAndDecode(`${baseUrl}audio/knock.mp3`).catch(() => null),
-        fetchAndDecode(`${baseUrl}audio/whisper.mp3`).catch(() => null)
+        fetchAndDecode(`${baseUrl}audio/whisper.mp3`).catch(() => null),
+        fetchAndDecode(`${baseUrl}audio/bell.mp3`).catch(() => null),
+        fetchAndDecode(`${baseUrl}audio/water_splash.mp3`).catch(() => null)
       ]);
+
+      if (bellBuf) this.bellBuffer = bellBuf;
+      if (waterBuf) this.waterSplashBuffer = waterBuf;
 
       if (knockBuf) {
         // Set A: First 3 knocks (0.28s to 1.08s)
@@ -123,8 +128,14 @@ export class AudioManager {
       }
 
       if (whisperBuf) {
-        // Trim whisper.mp3 to the 0.55s breath phrase (1.68s to 2.35s)
-        this.whisperTrimmed = this.sliceAudioBuffer(whisperBuf, 1.68, 2.35);
+        // Multi-variation whisper phrases for natural, eerie depth
+        this.whisperVariations = [
+          this.sliceAudioBuffer(whisperBuf, 0.2, 1.8),
+          this.sliceAudioBuffer(whisperBuf, 2.0, 3.8),
+          this.sliceAudioBuffer(whisperBuf, 4.0, 5.8),
+          this.sliceAudioBuffer(whisperBuf, 6.0, 8.5)
+        ].filter(Boolean);
+        this.whisperTrimmed = this.whisperVariations[0] || whisperBuf;
       }
     } catch (e) {}
   }
@@ -257,13 +268,13 @@ export class AudioManager {
       const targetCutoff = 20000 - Math.pow(this.smoothCorruption, 1.4) * 19300;
       this.masterFilter.frequency.setTargetAtTime(Math.max(650, targetCutoff), t, 4.0);
 
-      const targetSubDrone = Math.pow(this.smoothCorruption, 1.6) * 0.85;
+      const targetSubDrone = Math.pow(this.smoothCorruption, 1.6) * 0.45;
       this.subDroneGain.gain.setTargetAtTime(targetSubDrone, t, 4.0);
 
-      const targetTinnitus = this.smoothCorruption > 0.5 ? Math.pow(this.smoothCorruption - 0.5, 1.5) * 0.35 : 0.0;
-      this.tinnitusGain.gain.setTargetAtTime(targetTinnitus, t, 4.0);
+      // Disable harsh high-pitch ear ringing completely
+      this.tinnitusGain.gain.setTargetAtTime(0.0, t, 4.0);
 
-      const targetAmbienceGain = Math.pow(this.smoothCorruption, 1.2) * 0.95;
+      const targetAmbienceGain = Math.pow(this.smoothCorruption, 1.2) * 0.85;
       this.ambienceGain.gain.setTargetAtTime(targetAmbienceGain, t, 4.0);
 
       // Tempo smoothly glides from 108 down to 50
@@ -389,73 +400,59 @@ export class AudioManager {
   playPhantomKnocking() {
     if (!this.ctx || this.isMuted) return;
 
-    // Pick either Set A or Set B
-    const chosenSet = (Math.random() > 0.5 && this.knockSetB) ? this.knockSetB : (this.knockSetA || this.knockSetB);
+    // Pick Set A or Set B
+    const chosenSet = (Math.random() > 0.5 && this.knockSetB) ? this.knockSetB : this.knockSetA;
+    const sidePan = Math.random() > 0.5 ? -0.45 : 0.45;
 
     if (chosenSet) {
       try {
-        const src = this.ctx.createBufferSource();
-        src.buffer = chosenSet;
+        const source = this.ctx.createBufferSource();
+        source.buffer = chosenSet;
 
-        const sidePan = Math.random() > 0.5 ? (0.55 + Math.random() * 0.25) : (-0.55 - Math.random() * 0.25);
         const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
-        if (panner) panner.pan.setValueAtTime(sidePan, this.ctx.currentTime);
-
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.26, this.ctx.currentTime);
+        const t = this.ctx.currentTime;
+
+        // Realistic muffled door knock volume
+        gain.gain.setValueAtTime(0.18, t);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1400, t);
 
         if (panner) {
-          src.connect(panner);
+          panner.pan.setValueAtTime(sidePan, t);
+          source.connect(filter);
+          filter.connect(panner);
           panner.connect(gain);
         } else {
-          src.connect(gain);
+          source.connect(filter);
+          filter.connect(gain);
         }
         gain.connect(this.masterGain);
-        src.start();
+
+        source.start(t);
         return;
       } catch (e) {}
     }
 
-    // Procedural Fallback (3 rapid natural knuckle knocks)
-    const hitDelays = [0, 110, 230];
-    const sidePan = Math.random() > 0.5 ? 0.65 : -0.65;
-
-    hitDelays.forEach((delay, idx) => {
+    // Procedural Fallback 3-tap wood knock
+    const taps = [0, 180, 360];
+    taps.forEach((delay, idx) => {
       setTimeout(() => {
-        if (!this.ctx) return;
+        if (!this.ctx || this.isMuted) return;
         const t = this.ctx.currentTime;
         try {
-          const tapMultiplier = idx === 0 ? 1.0 : (idx === 1 ? 0.8 : 0.9);
-
-          const clickNoiseBuffer = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.025), this.ctx.sampleRate);
-          const clickData = clickNoiseBuffer.getChannelData(0);
-          for (let i = 0; i < clickData.length; i++) {
-            clickData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.004));
-          }
-
-          const clickSource = this.ctx.createBufferSource();
-          clickSource.buffer = clickNoiseBuffer;
-
-          const clickFilter = this.ctx.createBiquadFilter();
-          clickFilter.type = 'bandpass';
-          clickFilter.frequency.setValueAtTime(920, t);
-          clickFilter.Q.setValueAtTime(4.5, t);
-
-          const clickGain = this.ctx.createGain();
-          clickGain.gain.setValueAtTime(0.05 * tapMultiplier, t);
-          clickGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
-
-          clickSource.connect(clickFilter);
-          clickFilter.connect(clickGain);
+          const tapMultiplier = idx === 0 ? 0.9 : (idx === 1 ? 1.0 : 0.85);
 
           const woodOsc = this.ctx.createOscillator();
           const woodGain = this.ctx.createGain();
 
           woodOsc.type = 'triangle';
-          woodOsc.frequency.setValueAtTime(142, t);
-          woodOsc.frequency.exponentialRampToValueAtTime(60, t + 0.055);
+          woodOsc.frequency.setValueAtTime(130, t);
+          woodOsc.frequency.exponentialRampToValueAtTime(50, t + 0.055);
 
-          woodGain.gain.setValueAtTime(0.06 * tapMultiplier, t);
+          woodGain.gain.setValueAtTime(0.14 * tapMultiplier, t);
           woodGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
 
           woodOsc.connect(woodGain);
@@ -463,15 +460,12 @@ export class AudioManager {
           const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
           if (panner) {
             panner.pan.setValueAtTime(sidePan, t);
-            clickGain.connect(panner);
             woodGain.connect(panner);
             panner.connect(this.masterGain);
           } else {
-            clickGain.connect(this.masterGain);
             woodGain.connect(this.masterGain);
           }
 
-          clickSource.start(t);
           woodOsc.start(t);
           woodOsc.stop(t + 0.06);
         } catch (e) {}
@@ -480,35 +474,34 @@ export class AudioManager {
   }
 
   /**
-   * Realistic 3D Binaural Neck Whisper
-   * Plays the short sliced whisper phrase right behind the nape of the user's neck with smooth fade in and out.
+   * Realistic 3D Binaural Neck Whisper with multiple phrase variations
    */
   playBinauralWhisper() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
 
-    if (this.whisperTrimmed) {
+    const variations = this.whisperVariations || (this.whisperTrimmed ? [this.whisperTrimmed] : []);
+    if (variations.length > 0) {
       try {
         const source = this.ctx.createBufferSource();
-        source.buffer = this.whisperTrimmed;
+        const chosen = variations[Math.floor(Math.random() * variations.length)];
+        source.buffer = chosen;
 
-        // Dual-ear binaural sweep centered right behind the neck (-0.22 to +0.22)
         const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
         if (panner) {
-          const startPan = Math.random() > 0.5 ? -0.22 : 0.22;
+          const startPan = (Math.random() - 0.5) * 0.6;
           panner.pan.setValueAtTime(startPan, t);
-          panner.pan.linearRampToValueAtTime(-startPan * 0.5, t + 0.8);
         }
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(2000, t);
-        filter.Q.setValueAtTime(1.4, t);
+        filter.frequency.setValueAtTime(1700, t);
+        filter.Q.setValueAtTime(1.2, t);
 
         const gain = this.ctx.createGain();
         gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.linearRampToValueAtTime(0.09, t + 0.15);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+        gain.gain.linearRampToValueAtTime(0.22, t + 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
 
         if (panner) {
           source.connect(filter);
@@ -521,7 +514,7 @@ export class AudioManager {
         gain.connect(this.masterGain);
 
         source.start(t);
-        source.stop(t + 0.95);
+        source.stop(t + 1.9);
         return;
       } catch (e) {}
     }
@@ -900,6 +893,19 @@ export class AudioManager {
   playBellChime() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
+    if (this.bellBuffer) {
+      try {
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.bellBuffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.55, t);
+        source.connect(gain);
+        gain.connect(this.masterGain);
+        source.start(t);
+        return;
+      } catch (e) {}
+    }
+
     try {
       const harmonics = [440, 880, 1320, 1760, 2200];
       const gains = [0.28, 0.16, 0.09, 0.05, 0.02];
@@ -940,6 +946,19 @@ export class AudioManager {
   playWaterSplash() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
+    if (this.waterSplashBuffer) {
+      try {
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.waterSplashBuffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.50, t);
+        source.connect(gain);
+        gain.connect(this.masterGain);
+        source.start(t);
+        return;
+      } catch (e) {}
+    }
+
     try {
       const noiseBuffer = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.25), this.ctx.sampleRate);
       const data = noiseBuffer.getChannelData(0);

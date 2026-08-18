@@ -190,6 +190,7 @@ export class Controls3D {
   }
 
   update(delta, interactables = []) {
+    if (window.inNightmareEnding) return;
     delta = Math.min(delta || 0.016, 0.05);
 
     // Damping & Gravity
@@ -228,10 +229,18 @@ export class Controls3D {
     this.camera.position.z = resolvedPos.z;
     this.camera.position.y += this.velocity.y * delta;
 
-    // Ground collision
-    if (this.camera.position.y <= this.playerHeight) {
+    // Ground & Elevated Platform Collision (e.g. Gazebo at x: 24, z: -14)
+    let currentGroundY = this.playerHeight;
+    const dxGazebo = this.camera.position.x - 24;
+    const dzGazebo = this.camera.position.z - (-14);
+    if (dxGazebo * dxGazebo + dzGazebo * dzGazebo < 4.4 * 4.4) {
+      currentGroundY = this.playerHeight + 0.65;
+    }
+
+    if (this.camera.position.y <= currentGroundY) {
       this.velocity.y = 0;
-      this.camera.position.y = this.playerHeight;
+      this.camera.position.y = currentGroundY;
+      this.baseCameraY = currentGroundY;
       this.canJump = true;
       this.isJumping = false;
     }
