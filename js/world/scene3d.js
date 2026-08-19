@@ -995,8 +995,8 @@ export class WorldScene3D {
     // North Bench where Old Man Gregory sits
     this.buildParkBench(0, 9.2, 0);
 
-    // Town Hall Morning Festival Bell
-    this.buildTownBell(0, 23.6);
+    // Town Hall Morning Festival Bell (Freestanding Arch on Plaza)
+    this.buildTownBell(-4.5, 18.5);
 
     // Town Square Notice Board
     this.buildTownNoticeBoard(6.8, 11.2);
@@ -1326,38 +1326,58 @@ export class WorldScene3D {
   buildTownBell(x, z) {
     const group = new THREE.Group();
     const goldMat = new THREE.MeshLambertMaterial({ color: 0xF59E0B });
-    const darkWood = new THREE.MeshLambertMaterial({ color: 0x451A03 });
+    const woodMat = new THREE.MeshLambertMaterial({ color: 0x78350F });
+    const roofMat = new THREE.MeshLambertMaterial({ color: 0x1E3A8A });
 
-    // Hanging Beam Mount
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.22, 0.22), darkWood);
-    beam.position.set(0, 4.6, 0);
+    // Freestanding Timber Bell Post Arch
+    const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 3.8, 8), woodMat);
+    postL.position.set(-1.0, 1.9, 0);
+    postL.castShadow = true;
+    group.add(postL);
+
+    const postR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 3.8, 8), woodMat);
+    postR.position.set(1.0, 1.9, 0);
+    postR.castShadow = true;
+    group.add(postR);
+
+    // Crossbeam Mount
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.24, 0.24), woodMat);
+    beam.position.set(0, 3.7, 0);
+    beam.castShadow = true;
     group.add(beam);
+
+    // Gabled Rooflet above Bell
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.75, 4), roofMat);
+    roof.rotation.y = Math.PI / 4;
+    roof.position.set(0, 4.3, 0);
+    roof.castShadow = true;
+    group.add(roof);
 
     // Bronze Bell Body
     const bellGroup = new THREE.Group();
-    const bell = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.58, 0.72, 16), goldMat);
-    bell.position.y = 4.1;
+    const bell = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.44, 0.58, 16), goldMat);
+    bell.position.y = 3.2;
     bell.castShadow = true;
     bellGroup.add(bell);
 
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.08, 8, 16), goldMat);
-    rim.position.y = 3.75;
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.06, 8, 16), goldMat);
+    rim.position.y = 2.92;
     rim.rotation.x = Math.PI / 2;
     bellGroup.add(rim);
 
     // Hanging Pull Rope
     const rope = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 1.9, 6),
+      new THREE.CylinderGeometry(0.025, 0.025, 1.6, 6),
       new THREE.MeshLambertMaterial({ color: 0xD97706 })
     );
-    rope.position.y = 2.7;
+    rope.position.y = 2.0;
     bellGroup.add(rope);
 
     const handle = new THREE.Mesh(
-      new THREE.SphereGeometry(0.12, 8, 8),
+      new THREE.SphereGeometry(0.10, 8, 8),
       new THREE.MeshLambertMaterial({ color: 0xDC2626 })
     );
-    handle.position.y = 1.75;
+    handle.position.y = 1.2;
     bellGroup.add(handle);
 
     group.add(bellGroup);
@@ -1374,6 +1394,7 @@ export class WorldScene3D {
     this.scene.add(group);
     this.townBellGroup = group;
     this.interactableObjects.push(group);
+    this.collisionObstacles.push({ type: 'cylinder', x: x, z: z, radius: 1.2 });
   }
 
   ringBell() {

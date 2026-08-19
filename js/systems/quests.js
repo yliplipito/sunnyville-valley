@@ -45,7 +45,7 @@ export class QuestManager {
       {
         id: 'ring_bell',
         targetType: 'bell',
-        title: 'Ring the festival bell right behind Town Hall.',
+        title: 'Ring the festival bell on the Town Hall plaza.',
         targetCorruption: 0.8
       },
       // 2. Check Town Bulletin Board

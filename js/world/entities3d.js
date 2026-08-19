@@ -174,44 +174,44 @@ export class EntityManager3D {
     head.castShadow = true;
     group.add(head);
 
-    // Distinguished Handlebar Mustache
+    // Distinguished Handlebar Mustache (Relative to head origin)
     const mustacheL = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.38, 8), whiteMat);
-    mustacheL.position.set(-0.16, 1.66, 0.44);
+    mustacheL.position.set(-0.16, -0.14, 0.44);
     mustacheL.rotation.z = Math.PI / 2.5;
     mustacheL.rotation.x = -Math.PI / 4.5;
-    group.add(mustacheL);
+    head.add(mustacheL);
 
     const mustacheR = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.38, 8), whiteMat);
-    mustacheR.position.set(0.16, 1.66, 0.44);
+    mustacheR.position.set(0.16, -0.14, 0.44);
     mustacheR.rotation.z = -Math.PI / 2.5;
     mustacheR.rotation.x = -Math.PI / 4.5;
-    group.add(mustacheR);
+    head.add(mustacheR);
 
     this.addCuteEyes(head, 0.06, 0.44);
 
     // Monocle with dangling gold chain
     const monocle = new THREE.Mesh(new THREE.RingGeometry(0.09, 0.13, 16), goldMat);
-    monocle.position.set(0.2, 1.86, 0.46);
-    group.add(monocle);
+    monocle.position.set(0.2, 0.06, 0.46);
+    head.add(monocle);
 
     const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6), goldMat);
-    chain.position.set(0.28, 1.72, 0.44);
+    chain.position.set(0.28, -0.08, 0.44);
     chain.rotation.z = 0.4;
-    group.add(chain);
+    head.add(chain);
 
-    // Stovepipe Top Hat
+    // Stovepipe Top Hat (Mounted firmly on head)
     const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.74, 0.74, 0.06, 18), navyMat);
-    hatBrim.position.y = 2.18;
-    group.add(hatBrim);
+    hatBrim.position.y = 0.38;
+    head.add(hatBrim);
 
     const hatCrown = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.48, 0.82, 18), navyMat);
-    hatCrown.position.y = 2.6;
+    hatCrown.position.y = 0.80;
     hatCrown.castShadow = true;
-    group.add(hatCrown);
+    head.add(hatCrown);
 
     const goldBand = new THREE.Mesh(new THREE.CylinderGeometry(0.51, 0.51, 0.14, 18), redMat);
-    goldBand.position.y = 2.28;
-    group.add(goldBand);
+    goldBand.position.y = 0.48;
+    head.add(goldBand);
 
     // Tailcoat Body & Red Bowtie
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.60, 1.15, 14), navyMat);
@@ -313,35 +313,35 @@ export class EntityManager3D {
     this.addCuteEyes(head, 0.05, 0.42);
     this.addRosyCheeks(head, -0.04, 0.38);
 
-    // Braided Hair Tufts
+    // Braided Hair Tufts (Relative to head y: 1.68)
     const braidL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 0.65, 8), hairMat);
-    braidL.position.set(-0.42, 1.45, 0.05);
+    braidL.position.set(-0.42, -0.23, 0.05);
     braidL.rotation.z = -0.15;
-    group.add(braidL);
+    head.add(braidL);
 
     const braidR = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 0.65, 8), hairMat);
-    braidR.position.set(0.42, 1.45, 0.05);
+    braidR.position.set(0.42, -0.23, 0.05);
     braidR.rotation.z = 0.15;
-    group.add(braidR);
+    head.add(braidR);
 
-    // Straw Sunhat with Sunflower Badge
+    // Straw Sunhat with Sunflower Badge (Mounted on head)
     const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.95, 0.06, 18), strawMat);
-    hatBrim.position.y = 2.0;
+    hatBrim.position.y = 0.32;
     hatBrim.rotation.x = -0.05;
-    group.add(hatBrim);
+    head.add(hatBrim);
 
     const hatTop = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.52, 0.38, 16), strawMat);
-    hatTop.position.y = 2.22;
+    hatTop.position.y = 0.54;
     hatTop.castShadow = true;
-    group.add(hatTop);
+    head.add(hatTop);
 
     const hatRibbon = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.09, 16), dressMat);
-    hatRibbon.position.y = 2.06;
-    group.add(hatRibbon);
+    hatRibbon.position.y = 0.38;
+    head.add(hatRibbon);
 
     const hatFlower = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12, 0), flowerMat);
-    hatFlower.position.set(0.38, 2.08, 0.32);
-    group.add(hatFlower);
+    hatFlower.position.set(0.38, 0.40, 0.32);
+    head.add(hatFlower);
 
     // Pinafore Dress & White Apron
     const dress = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.15, 14), dressMat);
@@ -445,20 +445,20 @@ export class EntityManager3D {
     this.addRosyCheeks(head, -0.04, 0.4);
 
     const bMustache = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.06, 6, 12, Math.PI), woodMat);
-    bMustache.position.set(0, 1.62, 0.44);
+    bMustache.position.set(0, -0.14, 0.44);
     bMustache.rotation.z = Math.PI;
-    group.add(bMustache);
+    head.add(bMustache);
 
-    // Pleated Chef's Toque Hat
+    // Pleated Chef's Toque Hat (Mounted on head)
     const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.46, 0.28, 14), whiteMat);
-    hatBase.position.y = 2.18;
-    group.add(hatBase);
+    hatBase.position.y = 0.42;
+    head.add(hatBase);
 
     const hatPuff = new THREE.Mesh(new THREE.SphereGeometry(0.62, 14, 14), whiteMat);
-    hatPuff.position.y = 2.58;
+    hatPuff.position.y = 0.82;
     hatPuff.scale.set(1.05, 0.85, 1.05);
     hatPuff.castShadow = true;
-    group.add(hatPuff);
+    head.add(hatPuff);
 
     // Double-breasted Baker Jacket
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 1.15, 12), whiteMat);
@@ -557,15 +557,15 @@ export class EntityManager3D {
     this.addCuteEyes(head, 0.04, 0.35);
     this.addRosyCheeks(head, -0.03, 0.32);
 
-    // Red Baseball Cap worn backwards
+    // Red Baseball Cap worn backwards (Mounted on head y: 1.28)
     const cap = new THREE.Mesh(new THREE.SphereGeometry(0.41, 14, 14, 0, Math.PI * 2, 0, Math.PI / 1.9), capMat);
-    cap.position.y = 1.42;
-    group.add(cap);
+    cap.position.y = 0.14;
+    head.add(cap);
 
     const capVisor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.03, 0.28), capMat);
-    capVisor.position.set(0, 1.44, -0.32);
+    capVisor.position.set(0, 0.16, -0.32);
     capVisor.rotation.x = 0.2;
-    group.add(capVisor);
+    head.add(capVisor);
 
     // Striped Shirt & Denim Dungarees
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.72, 0.40), denimMat);
@@ -773,38 +773,38 @@ export class EntityManager3D {
     head.castShadow = true;
     group.add(head);
 
-    // Bushy White Mustache & Beard
+    // Bushy White Mustache & Beard (Relative to head y: 1.48)
     const beard = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.48, 8), hairMat);
-    beard.position.set(0, 1.28, 0.38);
+    beard.position.set(0, -0.20, 0.38);
     beard.rotation.x = -Math.PI / 5.5;
-    group.add(beard);
+    head.add(beard);
 
     const hairL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), hairMat);
-    hairL.position.set(-0.38, 1.48, -0.05);
-    group.add(hairL);
+    hairL.position.set(-0.38, 0, -0.05);
+    head.add(hairL);
 
     const hairR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), hairMat);
-    hairR.position.set(0.38, 1.48, -0.05);
-    group.add(hairR);
+    hairR.position.set(0.38, 0, -0.05);
+    head.add(hairR);
 
-    // Round Spectacles
+    // Round Spectacles (Mounted on head)
     const glassesL = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 12), brassMat);
-    glassesL.position.set(-0.16, 1.50, 0.44);
-    group.add(glassesL);
+    glassesL.position.set(-0.16, 0.02, 0.44);
+    head.add(glassesL);
 
     const glassesR = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 12), brassMat);
-    glassesR.position.set(0.16, 1.50, 0.44);
-    group.add(glassesR);
+    glassesR.position.set(0.16, 0.02, 0.44);
+    head.add(glassesR);
 
     const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.015, 0.015), brassMat);
-    bridge.position.set(0, 1.50, 0.44);
-    group.add(bridge);
+    bridge.position.set(0, 0.02, 0.44);
+    head.add(bridge);
 
-    // Tweed Newsboy Flat Cap
+    // Tweed Newsboy Flat Cap (Mounted on head)
     const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.48, 0.18, 12), new THREE.MeshLambertMaterial({ color: 0x78350F }));
-    cap.position.set(0, 1.82, -0.04);
+    cap.position.set(0, 0.34, -0.04);
     cap.rotation.x = -0.15;
-    group.add(cap);
+    head.add(cap);
 
     // Knit Cardigan Torso
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.58, 0.95, 12), sweaterMat);

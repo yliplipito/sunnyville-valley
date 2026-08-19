@@ -61,7 +61,7 @@ export class DialogueSystem {
       if (step === 0) {
         return [
           "Greetings, traveler! 🎩 Welcome to Sunnyville's Grand Summer Festival!",
-          "Could you do the honors and ring the festival bell right behind me?"
+          "Could you do the honors and ring the festival bell right beside me?"
         ];
       }
       if (step === 22) {
