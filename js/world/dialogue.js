@@ -37,6 +37,12 @@ export class DialogueSystem {
         e.stopPropagation();
         this.advanceDialogue();
       });
+
+      this.boxEl.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.advanceDialogue();
+      }, { passive: false });
     }
 
     window.addEventListener('keydown', (e) => {

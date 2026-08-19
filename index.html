@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Sunnyville Valley 3D 🌞 - Cozy Village Festival Adventure</title>
   <meta name="description" content="Step into the delightful, peaceful 3D world of Sunnyville Valley! Stroll through blooming flower gardens, chat with friendly neighbors, pet playful puppies, and help prepare the Grand Summer Festival!" />
   <meta name="theme-color" content="#FBBF24" />
@@ -39,6 +39,41 @@
       <!-- Resume Pill (When cursor is temporarily unlocked) -->
       <div id="resume-pill" class="resume-pill hidden">
         <span>Click inside to look around</span>
+      </div>
+
+      <!-- Touch / Mobile Virtual Controls Overlay -->
+      <div id="mobile-controls" class="mobile-controls hidden">
+        <!-- Virtual Joystick (Left Thumb) -->
+        <div id="joystick-zone" class="joystick-zone">
+          <div id="joystick-base" class="joystick-base">
+            <div id="joystick-knob" class="joystick-knob"></div>
+          </div>
+        </div>
+
+        <!-- Touch Look Drag Zone (Right Screen Drag) -->
+        <div id="touch-look-zone" class="touch-look-zone"></div>
+
+        <!-- Action Buttons (Bottom Right Cluster) -->
+        <div id="mobile-actions" class="mobile-actions">
+          <button id="mobile-sprint-btn" class="mobile-btn mobile-sprint-btn" aria-label="Sprint">
+            <span class="mobile-btn-icon">⚡</span>
+            <span class="mobile-btn-label">Sprint</span>
+          </button>
+          <button id="mobile-jump-btn" class="mobile-btn mobile-jump-btn" aria-label="Jump">
+            <span class="mobile-btn-icon">⬆️</span>
+            <span class="mobile-btn-label">Jump</span>
+          </button>
+          <button id="mobile-interact-btn" class="mobile-btn mobile-interact-btn" aria-label="Interact">
+            <span class="mobile-btn-icon" id="mobile-interact-icon">💬</span>
+            <span class="mobile-btn-label" id="mobile-interact-label">Interact</span>
+            <div id="mobile-hold-ring" class="mobile-hold-ring hidden">
+              <svg viewBox="0 0 40 40">
+                <circle class="ring-bg" cx="20" cy="20" r="17"></circle>
+                <circle class="ring-fill" id="mobile-ring-fill" cx="20" cy="20" r="17"></circle>
+              </svg>
+            </div>
+          </button>
+        </div>
       </div>
 
       <!-- Overlays: Visual FX, Lighting & Transitions -->
@@ -103,7 +138,8 @@
         <!-- 3D Interaction Prompt -->
         <div id="interact-prompt" class="interact-prompt hidden">
           <div class="prompt-main-row">
-            <span class="key-badge" id="interact-key">[E]</span>
+            <span class="key-badge desktop-only" id="interact-key">[E]</span>
+            <span class="key-badge mobile-only" id="interact-touch-key">TAP</span>
             <span class="prompt-text" id="interact-text">Talk</span>
           </div>
           <div id="interact-hold-bar" class="interact-hold-bar hidden">
@@ -146,7 +182,8 @@
             </div>
           </div>
           <div class="notice-board-footer">
-            <span>Press <b>[E]</b>, <b>[Enter]</b>, or click <b>[✕]</b> to close</span>
+            <span class="desktop-only">Press <b>[E]</b>, <b>[Enter]</b>, or click <b>[✕]</b> to close</span>
+            <span class="mobile-only">Tap <b>[✕]</b> or anywhere outside to close</span>
           </div>
         </div>
       </div>
@@ -163,7 +200,8 @@
             <div id="dialogue-glitch-text" class="dialogue-glitch-text hidden"></div>
           </div>
           <div class="dialogue-prompt" id="dialogue-continue-indicator">
-            <span class="continue-text">Press [E] to continue</span>
+            <span class="continue-text desktop-only">Press [E] to continue</span>
+            <span class="continue-text mobile-only">Tap to continue</span>
             <span class="continue-arrow">▼</span>
           </div>
         </div>
@@ -178,12 +216,18 @@
         <p class="welcome-desc">
           Step into a delightful, peaceful 3D world! Stroll through blooming flower gardens, chat with friendly neighbors, pet playful puppies, and help prepare the Grand Summer Festival!
         </p>
-        <div class="welcome-instructions">
+        <div class="welcome-instructions desktop-only">
           <p><b>Move:</b> [W, A, S, D] / Arrow Keys</p>
           <p><b>Look:</b> Mouse (First-Person View)</p>
           <p><b>Jump:</b> [Space]</p>
           <p><b>Interact / Talk:</b> [E]</p>
           <p><b>Sprint:</b> Hold [Shift]</p>
+        </div>
+        <div class="welcome-instructions mobile-only">
+          <p><b>🕹️ Move:</b> Left Thumb Virtual Joystick</p>
+          <p><b>👆 Look:</b> Drag screen to look around</p>
+          <p><b>💬 Interact:</b> Tap 💬 Interact / Talk Button</p>
+          <p><b>⬆️ Jump & ⚡ Sprint:</b> Action Buttons</p>
         </div>
         <div class="welcome-features">
           <div class="feature-item">🌻 <span>Explore the 3D Valley</span></div>
@@ -191,7 +235,7 @@
           <div class="feature-item">🧁 <span>Deliver fresh baked treats</span></div>
           <div class="feature-item">⭐ <span>Help Prepare the Festival</span></div>
         </div>
-        <p class="audio-tip">🎧 <em>Wear headphones for the best experience! (PC / Keyboard & Mouse)</em></p>
+        <p class="audio-tip">🎧 <em>Wear headphones for the best experience!</em></p>
         <button id="start-game-btn" class="bouncy-start-btn">
           <span>CLICK TO PLAY! 🎈</span>
         </button>
@@ -236,6 +280,15 @@
         </div>
       </div>
     </aside>
+
+    <!-- Rotate device sideways prompt (Mobile Portrait) -->
+    <div id="rotate-prompt-overlay" class="rotate-prompt-overlay">
+      <div class="rotate-prompt-box">
+        <div class="rotate-icon-anim">📱 ➔ 🔄</div>
+        <h2>Please Turn Your Phone Sideways</h2>
+        <p>Sunnyville Valley is best enjoyed in landscape mode! 🌻</p>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="js/main.js"></script>

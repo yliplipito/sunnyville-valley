@@ -39,6 +39,19 @@ export class DebugManager {
       this.closeBtn.addEventListener('click', () => this.hidePanel());
     }
 
+    const questIcon = document.querySelector('.quest-icon');
+    if (questIcon) {
+      questIcon.addEventListener('click', () => {
+        this.clickCount++;
+        clearTimeout(this.clickTimer);
+        this.clickTimer = setTimeout(() => { this.clickCount = 0; }, 800);
+        if (this.clickCount >= 3) {
+          this.togglePanel();
+          this.clickCount = 0;
+        }
+      });
+    }
+
     // Corruption Slider
     if (this.sliderEl) {
       this.sliderEl.addEventListener('input', (e) => {

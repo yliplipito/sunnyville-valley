@@ -118,27 +118,46 @@ class GameApp {
   initWelcomeModal() {
     const startBtn = document.getElementById('start-game-btn');
     const welcomeModal = document.getElementById('welcome-modal');
+    const mobileControls = document.getElementById('mobile-controls');
+
+    const resumeAudio = () => {
+      if (this.audio?.ctx && this.audio.ctx.state === 'suspended') {
+        this.audio.ctx.resume().catch(() => {});
+      }
+    };
+    window.addEventListener('touchstart', resumeAudio, { passive: true });
+    window.addEventListener('pointerdown', resumeAudio, { passive: true });
 
     if (startBtn && welcomeModal) {
-      startBtn.addEventListener('click', () => {
+      const handleStart = (e) => {
+        if (e) e.preventDefault();
         welcomeModal.classList.add('hidden');
         window.gameStarted = true;
         this.gameStartTime = Date.now();
 
         this.audio.init();
 
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().then(() => {
-            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
-          }).catch(() => {
-            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
-          });
+        const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches);
+        if (isTouch) {
+          document.body.classList.add('is-touch-device');
+          if (mobileControls) mobileControls.classList.remove('hidden');
         } else {
-          this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().then(() => {
+              this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+            }).catch(() => {
+              this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+            });
+          } else {
+            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+          }
         }
 
         this.hud.showToast("Welcome to Sunnyville! 🎈 Meet Mayor Barnaby at Town Hall!");
-      });
+      };
+
+      startBtn.addEventListener('click', handleStart);
+      startBtn.addEventListener('touchend', handleStart);
     }
   }
 
@@ -323,20 +342,27 @@ class GameApp {
       this.audio.updateWellProximityBreathing(this.camera.position, this.quests.currentStep);
     }
 
-    // Hold [E] to Unseal Well on Step 34
+    // Hold [E] or Mobile Interact to Unseal Well on Step 34
     const isAimingAtWell = this.controls?.hoveredObject?.userData?.type === 'well';
     const isAtWellStep = (this.quests?.currentStep || 0) >= 34;
     const holdBar = document.getElementById('interact-hold-bar');
     const holdFill = document.getElementById('interact-hold-fill');
     const promptText = document.getElementById('interact-text');
+    const mobileHoldRing = document.getElementById('mobile-hold-ring');
+    const mobileRingFill = document.getElementById('mobile-ring-fill');
+    const mobileInteractLabel = document.getElementById('mobile-interact-label');
 
     if (isAimingAtWell && isAtWellStep && !window.inNightmareEnding) {
       if (holdBar) holdBar.classList.remove('hidden');
+      if (mobileHoldRing) mobileHoldRing.classList.remove('hidden');
       if (promptText) promptText.textContent = 'Hold [E] to Pry Open Boarded Well';
+      if (mobileInteractLabel) mobileInteractLabel.textContent = 'Hold to Unseal';
 
       if (this.controls?.isHoldingE) {
         this.wellHoldProgress += delta / 1.15; // fills in ~1.15s
-        if (holdFill) holdFill.style.width = Math.min(100, this.wellHoldProgress * 100) + '%';
+        const pct = Math.min(100, this.wellHoldProgress * 100);
+        if (holdFill) holdFill.style.width = pct + '%';
+        if (mobileRingFill) mobileRingFill.style.strokeDashoffset = 106.8 * (1 - this.wellHoldProgress);
 
         // Minor physical effort tremor
         if (this.camera) {
@@ -348,18 +374,23 @@ class GameApp {
           this.wellHoldProgress = 0.0;
           if (holdFill) holdFill.style.width = '0%';
           if (holdBar) holdBar.classList.add('hidden');
+          if (mobileHoldRing) mobileHoldRing.classList.add('hidden');
           this.scares.triggerFullEndingClimax();
         }
       } else {
         if (this.wellHoldProgress > 0) {
           this.wellHoldProgress = Math.max(0, this.wellHoldProgress - delta * 3.0);
-          if (holdFill) holdFill.style.width = Math.min(100, this.wellHoldProgress * 100) + '%';
+          const pct = Math.min(100, this.wellHoldProgress * 100);
+          if (holdFill) holdFill.style.width = pct + '%';
+          if (mobileRingFill) mobileRingFill.style.strokeDashoffset = 106.8 * (1 - this.wellHoldProgress);
         }
       }
     } else {
       if (holdBar) holdBar.classList.add('hidden');
+      if (mobileHoldRing) mobileHoldRing.classList.add('hidden');
       this.wellHoldProgress = 0.0;
       if (holdFill) holdFill.style.width = '0%';
+      if (mobileRingFill) mobileRingFill.style.strokeDashoffset = '106.8';
     }
 
     this.corruption.update(delta);

@@ -541,7 +541,26 @@ export class QuestManager {
       }
     };
 
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+      closeBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        closeModal();
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      modal.addEventListener('touchend', (e) => {
+        if (e.target === modal) {
+          e.preventDefault();
+          closeModal();
+        }
+      });
+    }
+
     window.addEventListener('keydown', (e) => {
       if (modal && !modal.classList.contains('hidden')) {
         if (Date.now() - this.noticeModalOpenedTime < 250) return;
