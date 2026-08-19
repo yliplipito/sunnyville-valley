@@ -443,8 +443,31 @@ body, html {
   line-height: 1;
 }
 
+.goal-content-wrap {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .goal-text {
   flex: 1;
+}
+
+.goal-distance {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0369A1;
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  padding: 1px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 /* ===================================================================

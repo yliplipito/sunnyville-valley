@@ -71,4 +71,15 @@ export class HUDManager {
       stageEl.textContent = label;
     }
   }
+
+  updateGoalDistance(distMeters) {
+    const distEl = document.getElementById('goal-distance');
+    if (!distEl) return;
+    if (distMeters !== null && distMeters !== undefined && distMeters > 0) {
+      distEl.textContent = `📍 ${Math.round(distMeters)}m`;
+      distEl.style.display = 'inline-flex';
+    } else {
+      distEl.style.display = 'none';
+    }
+  }
 }

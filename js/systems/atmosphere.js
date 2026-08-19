@@ -68,18 +68,18 @@ export class CorruptionManager {
       return;
     }
 
-    let minDelay = 45000;
-    let maxDelay = 80000;
+    let minDelay = 14000;
+    let maxDelay = 24000;
 
     if (this.stage === 2) {
-      minDelay = 30000;
-      maxDelay = 55000;
-    } else if (this.stage === 3) {
-      minDelay = 20000;
-      maxDelay = 38000;
-    } else if (this.stage >= 4) {
       minDelay = 10000;
-      maxDelay = 20000;
+      maxDelay = 18000;
+    } else if (this.stage === 3) {
+      minDelay = 7000;
+      maxDelay = 14000;
+    } else if (this.stage >= 4) {
+      minDelay = 4000;
+      maxDelay = 9000;
     }
 
     const delay = minDelay + Math.random() * (maxDelay - minDelay);
@@ -96,11 +96,9 @@ export class CorruptionManager {
     const roll = Math.random();
 
     if (this.stage === 0) {
-      // Stage 0: 100% serene and normal
       return;
     } else if (this.stage === 1) {
-      // Subtle, rare hallucinations that make player question what they heard
-      if (roll < 0.40) {
+      if (roll < 0.45) {
         if (this.audio) this.audio.playPhantomKnocking();
       } else if (roll < 0.75) {
         if (this.audio) this.audio.playPhantomFootstep();
@@ -108,34 +106,42 @@ export class CorruptionManager {
         if (this.audio) this.audio.playTapeWarble();
       }
     } else if (this.stage === 2) {
-      // Creeping unease: fleeting whisper, subtle knock, ear pop pressure drop
-      if (roll < 0.35) {
+      if (roll < 0.40) {
+        if (this.audio) this.audio.playBinauralWhisper();
+      } else if (roll < 0.70) {
+        if (this.audio) this.audio.playPhantomKnocking();
+      } else if (roll < 0.88) {
+        if (this.audio) this.audio.playSubtlePressureDrop();
+      } else {
+        this.scares.triggerScreenTwitch(60);
+      }
+    } else if (this.stage >= 3) {
+      if (roll < 0.40) {
         if (this.audio) this.audio.playBinauralWhisper();
       } else if (roll < 0.65) {
         if (this.audio) this.audio.playPhantomKnocking();
       } else if (roll < 0.85) {
         if (this.audio) this.audio.playSubtlePressureDrop();
       } else {
-        this.scares.triggerScreenTwitch(50);
-      }
-    } else if (this.stage >= 3) {
-      // Subtle reality shift: whispers, soft pressure drops, rare peripheral tree-line silhouettes
-      if (roll < 0.40) {
-        if (this.audio) this.audio.playBinauralWhisper();
-      } else if (roll < 0.65) {
-        if (window.gameCamera && this.entities) {
-          const camPos = window.gameCamera.position;
-          // Spawn distant behind trees in peripheral vision (26m away)
-          const angle = Math.random() * Math.PI * 2;
-          const sx = camPos.x + Math.cos(angle) * 26;
-          const sz = camPos.z + Math.sin(angle) * 26;
-          this.entities.spawnStalkerAt(sx, sz);
-        }
-      } else if (roll < 0.85) {
-        if (this.audio) this.audio.playSubtlePressureDrop();
-      } else {
         if (this.audio) this.audio.playTapeWarble();
       }
+    }
+  }
+
+  triggerMilestoneAnomaly(type) {
+    if (!window.gameStarted || window.inNightmareEnding || !this.audio) return;
+
+    if (type === 'watch_returned') {
+      this.audio.playSubtlePressureDrop();
+      setTimeout(() => this.audio.playTapeWarble(), 200);
+    } else if (type === 'lanterns_lit') {
+      setTimeout(() => this.audio.playBinauralWhisper(), 400);
+    } else if (type === 'board_evening') {
+      setTimeout(() => this.audio.playPhantomKnocking(), 300);
+    } else if (type === 'balloon_found') {
+      setTimeout(() => this.audio.playPhantomFootstep(), 250);
+    } else if (type === 'mayor_dusk') {
+      this.audio.playSubtlePressureDrop();
     }
   }
 

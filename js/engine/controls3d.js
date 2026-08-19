@@ -45,6 +45,7 @@ export class Controls3D {
 
     // Head Bobbing & Footsteps
     this.bobTimer = 0;
+    this.playerY = this.playerHeight;
     this.baseCameraY = this.playerHeight;
     this.stepTriggered = false;
 
@@ -218,9 +219,11 @@ export class Controls3D {
 
     this.camera.position.x = resolvedPos.x;
     this.camera.position.z = resolvedPos.z;
-    this.camera.position.y += this.velocity.y * delta;
 
-    // Ground & Elevated Platform Collision (e.g. Gazebo at x: 24, z: -14)
+    // 2. Vertical Integration & Gravity
+    this.playerY += this.velocity.y * delta;
+
+    // Ground & Elevated Platform Collision (e.g. Gazebo stone base at x: 24, z: -14)
     let currentGroundY = this.playerHeight;
     const dxGazebo = this.camera.position.x - 24;
     const dzGazebo = this.camera.position.z - (-14);
@@ -228,12 +231,13 @@ export class Controls3D {
       currentGroundY = this.playerHeight + 0.65;
     }
 
-    if (this.camera.position.y <= currentGroundY) {
+    if (this.playerY <= currentGroundY) {
       this.velocity.y = 0;
-      this.camera.position.y = currentGroundY;
-      this.baseCameraY = currentGroundY;
+      this.playerY = currentGroundY;
       this.canJump = true;
       this.isJumping = false;
+    } else {
+      this.canJump = false;
     }
 
     // World bounds clamp
@@ -247,12 +251,12 @@ export class Controls3D {
     this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, this.targetFov, delta * 6.0);
     this.camera.updateProjectionMatrix();
 
-    // Head bobbing & footsteps
-    const isMoving = (this.moveForward || this.moveBackward || this.moveLeft || this.moveRight) && this.canJump;
-    if (isMoving) {
+    // 3. Head bobbing & footsteps (Visual offset added only on solid ground)
+    let bobOffset = 0;
+    const isMoving = (this.moveForward || this.moveBackward || this.moveLeft || this.moveRight);
+    if (isMoving && this.canJump) {
       this.bobTimer += delta * (this.isSprinting ? 15 : 10);
-      const bobOffset = Math.sin(this.bobTimer) * (this.isSprinting ? 0.07 : 0.035);
-      this.camera.position.y = this.baseCameraY + bobOffset;
+      bobOffset = Math.sin(this.bobTimer) * (this.isSprinting ? 0.07 : 0.035);
 
       if (Math.sin(this.bobTimer) > 0.95 && !this.stepTriggered) {
         this.stepTriggered = true;
@@ -265,10 +269,9 @@ export class Controls3D {
       }
     } else {
       this.bobTimer = 0;
-      if (this.camera.position.y < this.baseCameraY + 0.01) {
-        this.camera.position.y = this.baseCameraY;
-      }
     }
+
+    this.camera.position.y = this.playerY + bobOffset;
 
     this.updateRaycast(interactables);
   }

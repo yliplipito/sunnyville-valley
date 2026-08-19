@@ -412,7 +412,7 @@ export class EntityManager3D {
     group.add(nameplate);
 
     group.position.set(x, 0, z);
-    group.rotation.y = -Math.PI / 3.2;
+    group.rotation.y = -Math.PI * 0.75;
     group.userData = {
       interactable: true,
       id: 'daisy',
@@ -743,6 +743,7 @@ export class EntityManager3D {
     group.add(nameplate);
 
     group.position.set(x, 0, z);
+    group.rotation.y = Math.PI / 2.2;
     group.userData = {
       interactable: true,
       id: 'dog',

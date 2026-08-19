@@ -302,6 +302,17 @@ class GameApp {
       this.controls.update(delta, interactables);
     }
 
+    // Update live distance to active quest objective
+    if (this.quests && this.hud && this.camera && window.gameStarted) {
+      const objPos = this.quests.getCurrentObjectivePosition();
+      if (objPos) {
+        const dist = Math.hypot(this.camera.position.x - objPos.x, this.camera.position.z - objPos.z);
+        this.hud.updateGoalDistance(dist);
+      } else {
+        this.hud.updateGoalDistance(null);
+      }
+    }
+
     this.corruption.update(delta);
     this.world.update(delta);
     this.entities.update(delta, this.camera.position);

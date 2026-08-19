@@ -62,6 +62,7 @@ export class WorldScene3D {
     this.buildButterfliesAndAmbient();
     this.buildParticleEffects();
     this.buildEclipsedNightmareEye();
+    this.buildWaypointBeacon();
   }
 
   initSkyAndLighting() {
@@ -1719,6 +1720,48 @@ export class WorldScene3D {
     }
   }
 
+  buildWaypointBeacon() {
+    const group = new THREE.Group();
+
+    // Glowing golden diamond
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xFDE047 });
+    const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), beaconMat);
+    diamond.position.y = 2.7;
+    group.add(diamond);
+
+    // Downward pointing arrow cone
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.40, 8), beaconMat);
+    cone.position.y = 2.2;
+    cone.rotation.x = Math.PI;
+    group.add(cone);
+
+    // Glowing beam pillar
+    const pillarMat = new THREE.MeshBasicMaterial({
+      color: 0xFDE047,
+      transparent: true,
+      opacity: 0.22,
+      side: THREE.DoubleSide
+    });
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.42, 3.2, 8, 1, true), pillarMat);
+    pillar.position.y = 1.6;
+    group.add(pillar);
+
+    group.visible = false;
+    this.waypointBeacon = group;
+    this.waypointDiamond = diamond;
+    this.scene.add(group);
+  }
+
+  setWaypointTarget(pos) {
+    if (!this.waypointBeacon) return;
+    if (pos) {
+      this.waypointBeacon.position.set(pos.x, (pos.y || 0), pos.z);
+      this.waypointBeacon.visible = true;
+    } else {
+      this.waypointBeacon.visible = false;
+    }
+  }
+
   update(delta) {
     // Smooth frame-by-frame exponential color lerp
     this.currentSkyColor.lerp(this.targetSkyColor, delta * 0.8);
@@ -1726,6 +1769,13 @@ export class WorldScene3D {
 
     if (this.skyMesh) this.skyMesh.material.color.copy(this.currentSkyColor);
     if (this.fog) this.fog.color.copy(this.currentFogColor);
+
+    // Animate 3D Waypoint Beacon
+    if (this.waypointBeacon && this.waypointBeacon.visible && this.waypointDiamond) {
+      const t = performance.now() * 0.001;
+      this.waypointDiamond.rotation.y += delta * 2.5;
+      this.waypointDiamond.position.y = 2.7 + Math.sin(t * 3.5) * 0.12;
+    }
 
     // Drifting clouds
     this.clouds.forEach(c => {

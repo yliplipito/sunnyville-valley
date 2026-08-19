@@ -334,6 +334,54 @@ export class QuestManager {
     return false;
   }
 
+  getCurrentObjectivePosition() {
+    const goal = this.goals[this.currentStep];
+    if (!goal) return null;
+
+    if (goal.targetType === 'npc') {
+      const npcMap = {
+        mayor: { x: 0, y: 0.5, z: 18.0 },
+        daisy: { x: 6.2, y: 0.5, z: 4.2 },
+        baker: { x: 24.5, y: 0.5, z: 1.8 },
+        timmy: { x: -16.5, y: 0.5, z: 2.2 },
+        gregory: { x: 0, y: 0.5, z: 9.2 }
+      };
+      return npcMap[goal.targetId] || null;
+    }
+
+    if (goal.targetType === 'bell') return { x: 0, y: 1.8, z: 19.8 };
+    if (goal.targetType === 'noticeboard') return { x: -6.5, y: 1.2, z: 6.2 };
+    if (goal.targetType === 'fountain') return { x: 0, y: 0.8, z: 0 };
+    if (goal.targetType === 'watering_can') return { x: 9.5, y: 0.4, z: 3.8 };
+    if (goal.targetType === 'flower') {
+      const flowers = [
+        { x: -10.5, y: 0.4, z: 4.0 },
+        { x: 10.5, y: 0.4, z: -4.0 },
+        { x: -5.5, y: 0.4, z: -8.0 }
+      ];
+      return flowers[(this.flowersPicked || 0) % flowers.length] || flowers[0];
+    }
+    if (goal.targetType === 'ball') return { x: -18.5, y: 0.3, z: -6.5 };
+    if (goal.targetType === 'dog') return { x: -22.0, y: 0.5, z: -12.5 };
+    if (goal.targetType === 'flour_sack') return { x: -18.5, y: 0.4, z: 2.0 };
+    if (goal.targetType === 'berry_basket') return { x: 23.5, y: 0.4, z: -14.5 };
+    if (goal.targetType === 'watch') return { x: 0, y: 0.8, z: -1.8 };
+    if (goal.targetType === 'lamp') {
+      const lamps = [
+        { x: -7, y: 1.5, z: 8 },
+        { x: 7, y: 1.5, z: 8 },
+        { x: -7, y: 1.5, z: -8 },
+        { x: 7, y: 1.5, z: -8 }
+      ];
+      const litCount = this.litLamps.filter(Boolean).length;
+      return lamps[litCount % lamps.length] || lamps[0];
+    }
+    if (goal.targetType === 'balloon') return { x: 18.5, y: 0.8, z: -16.0 };
+    if (goal.targetType === 'well') return { x: 0, y: 0.8, z: -44.0 };
+
+    return null;
+  }
+
   renderCurrentGoal(isDone = false) {
     const titleEl = document.getElementById('quest-panel-title');
     const current = this.goals[this.currentStep];
@@ -359,6 +407,11 @@ export class QuestManager {
     if (this.hud && this.hud.updateCurrentGoal) {
       this.hud.updateCurrentGoal(text, isDone);
     }
+
+    const pos = this.getCurrentObjectivePosition();
+    if (window.worldScene && window.worldScene.setWaypointTarget) {
+      window.worldScene.setWaypointTarget(pos);
+    }
   }
 
   initNoticeBoardListener() {
@@ -379,6 +432,7 @@ export class QuestManager {
           this.hasReadNotice = true;
           this.advanceStep(this.goals[2].targetCorruption);
         } else if (this.currentStep === 26) {
+          if (this.corruption) this.corruption.triggerMilestoneAnomaly('board_evening');
           this.advanceStep(this.goals[26].targetCorruption);
         }
       }
@@ -625,6 +679,7 @@ export class QuestManager {
 
     const litCount = this.litLamps.filter(Boolean).length;
     if (litCount >= 4) {
+      if (this.corruption) this.corruption.triggerMilestoneAnomaly('lanterns_lit');
       this.advanceStep(this.goals[23].targetCorruption);
     } else {
       this.renderCurrentGoal();
@@ -725,6 +780,16 @@ export class QuestManager {
     this.renderCurrentGoal();
   }
 
+  onTalkedToMayor() {
+    if (this.currentStep === 0) {
+      if (this.audio) this.audio.playSparkle();
+      this.advanceStep(this.goals[0].targetCorruption);
+    } else if (this.currentStep === 33) {
+      if (this.corruption) this.corruption.triggerMilestoneAnomaly('mayor_dusk');
+      this.advanceStep(this.goals[33].targetCorruption);
+    }
+  }
+
   onTalkedToGregory() {
     if (this.currentStep === 20) {
       if (this.audio) this.audio.playSparkle();
@@ -732,6 +797,7 @@ export class QuestManager {
     } else if (this.currentStep === 22 && this.hasMayorWatch) {
       this.hasMayorWatch = false;
       if (this.audio) this.audio.playFanfare();
+      if (this.corruption) this.corruption.triggerMilestoneAnomaly('watch_returned');
       this.advanceStep(this.goals[22].targetCorruption);
     } else if (this.currentStep === 29) {
       this.advanceStep(this.goals[29].targetCorruption);
@@ -831,6 +897,7 @@ export class QuestManager {
     }
 
     if (this.audio) this.audio.playSparkle();
+    if (this.corruption) this.corruption.triggerMilestoneAnomaly('balloon_found');
 
     if (this.currentStep === 30) {
       this.advanceStep(this.goals[30].targetCorruption);
