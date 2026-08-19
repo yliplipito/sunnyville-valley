@@ -545,7 +545,7 @@ export class QuestManager {
     window.addEventListener('keydown', (e) => {
       if (modal && !modal.classList.contains('hidden')) {
         if (Date.now() - this.noticeModalOpenedTime < 250) return;
-        if (e.code === 'KeyE' || e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') {
+        if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') {
           e.preventDefault();
           closeModal();
         }
@@ -806,15 +806,6 @@ export class QuestManager {
 
     if (this.currentStep === 11) {
       this.advanceStep(this.goals[11].targetCorruption);
-    }
-  }
-
-  onTalkedToMayor() {
-    if (this.currentStep === 0) {
-      if (this.audio) this.audio.playSparkle();
-      this.advanceStep(this.goals[0].targetCorruption);
-    } else if (this.currentStep === 33) {
-      this.advanceStep(this.goals[33].targetCorruption);
     }
   }
 

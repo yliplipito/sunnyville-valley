@@ -80,8 +80,18 @@ export class AudioManager {
         this.masterFilter.connect(this.reverbNode);
         this.reverbNode.connect(this.masterGain);
       }
+
+      // Studio Master Limiter / Compressor to prevent any digital distortion
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.setValueAtTime(-2.0, this.ctx.currentTime);
+      this.limiter.knee.setValueAtTime(4.0, this.ctx.currentTime);
+      this.limiter.ratio.setValueAtTime(16.0, this.ctx.currentTime);
+      this.limiter.attack.setValueAtTime(0.003, this.ctx.currentTime);
+      this.limiter.release.setValueAtTime(0.12, this.ctx.currentTime);
+
       this.masterFilter.connect(this.masterGain);
-      this.masterGain.connect(this.ctx.destination);
+      this.masterGain.connect(this.limiter);
+      this.limiter.connect(this.ctx.destination);
 
       this.initSubDrone();
       this.initTinnitus();
@@ -724,77 +734,128 @@ export class AudioManager {
     } catch (e) {}
   }
 
-  playJumpscareRoar() {
+  playWoodPlankBreak() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     try {
-      // 1. High-Frequency Piercing Tinnitus Needle Shock ("The Pitch Sound")
-      const pitchOsc = this.ctx.createOscillator();
-      const pitchGain = this.ctx.createGain();
-      pitchOsc.type = 'sine';
-      pitchOsc.frequency.setValueAtTime(5400, t);
-      pitchOsc.frequency.linearRampToValueAtTime(7800, t + 0.12);
-      pitchOsc.frequency.exponentialRampToValueAtTime(3200, t + 0.70);
+      // 1. Sharp wooden crack snap
+      const snapOsc = this.ctx.createOscillator();
+      const snapGain = this.ctx.createGain();
+      snapOsc.type = 'sawtooth';
+      snapOsc.frequency.setValueAtTime(320, t);
+      snapOsc.frequency.exponentialRampToValueAtTime(45, t + 0.08);
+      snapGain.gain.setValueAtTime(0.75, t);
+      snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      snapOsc.connect(snapGain);
+      snapGain.connect(this.masterGain);
+      snapOsc.start(t);
+      snapOsc.stop(t + 0.09);
 
-      pitchGain.gain.setValueAtTime(0.45, t);
-      pitchGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
-
-      pitchOsc.connect(pitchGain);
-      pitchGain.connect(this.masterGain);
-      pitchOsc.start(t);
-      pitchOsc.stop(t + 0.75);
-
-      // 2. Sub-Audible Visceral Earthquake Thud
-      const sub = this.ctx.createOscillator();
-      const subGain = this.ctx.createGain();
-      sub.type = 'sine';
-      sub.frequency.setValueAtTime(80, t);
-      sub.frequency.exponentialRampToValueAtTime(22, t + 0.70);
-      subGain.gain.setValueAtTime(0.95, t);
-      subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
-      sub.connect(subGain);
-      subGain.connect(this.masterGain);
-      sub.start(t);
-      sub.stop(t + 0.75);
-
-      // 3. Demonic Guttural Distorted Scream
-      const scream = this.ctx.createOscillator();
-      const sGain = this.ctx.createGain();
-      const sFilter = this.ctx.createBiquadFilter();
-      scream.type = 'sawtooth';
-      sFilter.type = 'bandpass';
-      sFilter.frequency.setValueAtTime(1400, t);
-      sFilter.frequency.exponentialRampToValueAtTime(450, t + 0.70);
-      sFilter.Q.setValueAtTime(4.0, t);
-
-      scream.frequency.setValueAtTime(520, t);
-      scream.frequency.linearRampToValueAtTime(1850, t + 0.10);
-      scream.frequency.exponentialRampToValueAtTime(110, t + 0.70);
-
-      sGain.gain.setValueAtTime(0.85, t);
-      sGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
-
-      scream.connect(sFilter);
-      sFilter.connect(sGain);
-      sGain.connect(this.masterGain);
-      scream.start(t);
-      scream.stop(t + 0.75);
-
-      // 4. Harsh Splintering Noise Blast
-      const bSize = Math.floor(this.ctx.sampleRate * 0.75);
+      // 2. Heavy splinter noise burst
+      const bSize = Math.floor(this.ctx.sampleRate * 0.45);
       const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.18));
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.08));
       }
       const noise = this.ctx.createBufferSource();
       noise.buffer = buffer;
       const nFilter = this.ctx.createBiquadFilter();
-      nFilter.type = 'highpass';
-      nFilter.frequency.setValueAtTime(800, t);
+      nFilter.type = 'bandpass';
+      nFilter.frequency.setValueAtTime(850, t);
+      nFilter.Q.setValueAtTime(2.0, t);
       const nGain = this.ctx.createGain();
       nGain.gain.setValueAtTime(0.70, t);
-      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      noise.connect(nFilter);
+      nFilter.connect(nGain);
+      nGain.connect(this.masterGain);
+      noise.start(t);
+    } catch (e) {}
+  }
+
+  playJumpscareRoar() {
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+    try {
+      // 1. Deep Subwoofer Earthquake Impact (65Hz -> 18Hz)
+      const sub = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(65, t);
+      sub.frequency.exponentialRampToValueAtTime(18, t + 1.1);
+      subGain.gain.setValueAtTime(0.85, t);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+      sub.connect(subGain);
+      subGain.connect(this.masterGain);
+      sub.start(t);
+      sub.stop(t + 1.25);
+
+      // 2. Frequency-Modulated Alien / Screaming Void Formants (Dual Carrier & Modulator)
+      const carrier = this.ctx.createOscillator();
+      const modulator = this.ctx.createOscillator();
+      const modGain = this.ctx.createGain();
+      const screamGain = this.ctx.createGain();
+      const screamFilter = this.ctx.createBiquadFilter();
+
+      carrier.type = 'sawtooth';
+      carrier.frequency.setValueAtTime(580, t);
+      carrier.frequency.linearRampToValueAtTime(1380, t + 0.14);
+      carrier.frequency.exponentialRampToValueAtTime(160, t + 1.1);
+
+      modulator.type = 'sine';
+      modulator.frequency.setValueAtTime(160, t);
+      modulator.frequency.linearRampToValueAtTime(380, t + 0.2);
+
+      modGain.gain.setValueAtTime(380, t);
+      modulator.connect(carrier.frequency);
+
+      screamFilter.type = 'bandpass';
+      screamFilter.frequency.setValueAtTime(1600, t);
+      screamFilter.frequency.exponentialRampToValueAtTime(550, t + 1.1);
+      screamFilter.Q.setValueAtTime(3.0, t);
+
+      screamGain.gain.setValueAtTime(0.68, t);
+      screamGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+
+      carrier.connect(screamFilter);
+      screamFilter.connect(screamGain);
+      screamGain.connect(this.masterGain);
+
+      modulator.start(t);
+      carrier.start(t);
+      modulator.stop(t + 1.25);
+      carrier.stop(t + 1.25);
+
+      // 3. Piercing High Tinnitus Shepard Needle Tone (5.6kHz -> 7.4kHz)
+      const ringOsc = this.ctx.createOscillator();
+      const ringGain = this.ctx.createGain();
+      ringOsc.type = 'sine';
+      ringOsc.frequency.setValueAtTime(5600, t);
+      ringOsc.frequency.linearRampToValueAtTime(7400, t + 0.22);
+      ringOsc.frequency.exponentialRampToValueAtTime(3800, t + 1.1);
+      ringGain.gain.setValueAtTime(0.35, t);
+      ringGain.gain.exponentialRampToValueAtTime(0.0001, t + 1.25);
+      ringOsc.connect(ringGain);
+      ringGain.connect(this.masterGain);
+      ringOsc.start(t);
+      ringOsc.stop(t + 1.3);
+
+      // 4. Heavy Splintering Impact Noise Burst
+      const bSize = Math.floor(this.ctx.sampleRate * 0.85);
+      const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.16));
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const nFilter = this.ctx.createBiquadFilter();
+      nFilter.type = 'lowpass';
+      nFilter.frequency.setValueAtTime(2200, t);
+      const nGain = this.ctx.createGain();
+      nGain.gain.setValueAtTime(0.65, t);
+      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
       noise.connect(nFilter);
       nFilter.connect(nGain);
       nGain.connect(this.masterGain);

@@ -232,6 +232,10 @@ class GameApp {
 
     if (data.id === 'dog') {
       this.quests.petDog();
+      const lines = this.dialogue.getDialogueFor('dog', this.corruption.stage);
+      this.dialogue.showDialogue(data.name || "Buster", data.avatar || "🐶", lines, 520, () => {
+        this.quests.petDog();
+      });
       return;
     }
 

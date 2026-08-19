@@ -271,6 +271,39 @@ export class DialogueSystem {
       ];
     }
 
+    // --- 6. BUSTER THE DOG ---
+    if (npcId === 'dog') {
+      if (step === 12) {
+        return [
+          "*Happy Bark!* 🐶 [Buster catches his squeaky ball and dances in joyous circles!]",
+          "[He drops the ball at your feet and nuzzles your hand gratefully!]",
+          "[Next task: Baker Benny is calling from Sunshine Bakery!]"
+        ];
+      }
+      if (step === 27) {
+        return [
+          "*Low Whimper...* 🐶 [Buster’s ears are pinned flat against his head.]",
+          "[He stares anxiously toward the dark Whispering Woods clearing.]"
+        ];
+      }
+      if (step < 12) {
+        return [
+          "*Woof! Woof!* 🐶 [Buster wags his tail enthusiastically!]",
+          "[He tilts his head, hoping someone finds his red squeaky toy ball on the lawn.]"
+        ];
+      }
+      if (step > 12 && step < 27) {
+        return [
+          "*Panting happily* 🐶 [Buster rolls onto his back and wags his tail!]",
+          "[He loves holding his favorite red squeaky toy.]"
+        ];
+      }
+      return [
+        "[Buster sits frozen in the corner of the yard in complete silence.]",
+        "[His dark glassy eyes stare unblinkingly into the tree shadows.]"
+      ];
+    }
+
     return [
       "Hello there, neighbor! 🌞",
       "Welcome to Sunnyville Valley!"

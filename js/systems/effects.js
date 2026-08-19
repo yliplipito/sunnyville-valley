@@ -385,82 +385,109 @@ export class ScareManager {
     const camera = window.gameCamera;
     const world = window.worldScene;
 
-    // 1. Snap camera directly facing the well opening
-    if (camera) {
-      camera.position.set(0, 1.8, -40.5);
-      camera.lookAt(0, 1.5, -44.0);
-    }
-
-    // 2. Explode the well planks apart violently in 3D
-    const wellPlanks = world?.wellPlanks || [];
-    if (wellPlanks[0]) {
-      wellPlanks[0].position.set(-2.6, 2.8, 0.8);
-      wellPlanks[0].rotation.set(-0.6, 0.4, -1.4);
-    }
-    if (wellPlanks[1]) {
-      wellPlanks[1].position.set(2.6, 2.8, -0.8);
-      wellPlanks[1].rotation.set(0.6, -0.4, 1.4);
-    }
-
-    // 3. Audio: Visceral horror jumpscare roar and stinger
+    // Cut music and initiate deep sub-drone heartbeat
     if (this.audio) {
-      this.audio.playJumpscareRoar();
-    }
-
-    // 4. Render terrifying jumpscare face lunging at the screen
-    if (this.scareCanvas && this.scareCtx) {
-      const w = this.scareCanvas.width;
-      const h = this.scareCanvas.height;
-      this.scareCtx.clearRect(0, 0, w, h);
-      this.drawUncannyPhotorealisticFace(w, h);
-      this.scareCanvas.style.opacity = '1';
-    }
-
-    const scareStartTime = performance.now();
-    const animScare = () => {
-      const now = performance.now();
-      const elapsed = (now - scareStartTime) / 1000;
-      if (elapsed < 0.72) {
-        const progress = elapsed / 0.72;
-        const scale = 0.45 + progress * 1.15 + (Math.random() - 0.5) * 0.06;
-        const jitterX = (Math.random() - 0.5) * 20;
-        const jitterY = (Math.random() - 0.5) * 20;
-        if (this.scareCanvas) {
-          this.scareCanvas.style.transform = `translate(${jitterX}px, ${jitterY}px) scale(${scale.toFixed(3)})`;
+      try {
+        if (this.audio.musicGain && this.audio.ctx) {
+          this.audio.musicGain.gain.setValueAtTime(0, this.audio.ctx.currentTime);
         }
-        requestAnimationFrame(animScare);
+      } catch (e) {}
+    }
+
+    // 1. Smooth Cinematic Camera Glide down to Well Mouth (0ms - 2000ms)
+    const startPos = camera ? camera.position.clone() : new THREE.Vector3(0, 1.8, -38);
+    const targetPos = new THREE.Vector3(0, 1.95, -41.2);
+    const targetLook = new THREE.Vector3(0, 1.1, -44.0);
+    const glideStartTime = performance.now();
+
+    const glideCam = () => {
+      const elapsed = performance.now() - glideStartTime;
+      const p = Math.min(1.0, elapsed / 2000);
+      const ease = p * p * (3 - 2 * p); // smoothstep
+      if (camera) {
+        camera.position.lerpVectors(startPos, targetPos, ease);
+        camera.lookAt(targetLook);
+      }
+      if (p < 1.0) {
+        requestAnimationFrame(glideCam);
       }
     };
-    requestAnimationFrame(animScare);
+    requestAnimationFrame(glideCam);
 
-    this.triggerScreenTwitch(800);
+    this.triggerScreenTwitch(2000);
 
-    const canvasWrap = document.getElementById('canvas-wrapper');
-    if (canvasWrap) {
-      canvasWrap.classList.add('active-twitch');
-    }
-
-    // 5. Intense scare lasts for 750ms, then SLAM CUT TO PITCH BLACK
+    // 2. The Ancient Planks Shatter Apart (at 2000ms)
     setTimeout(() => {
-      if (this.scareCanvas) {
-        this.scareCanvas.style.opacity = '0';
-        this.scareCanvas.style.transform = 'none';
-      }
-      if (canvasWrap) {
-        canvasWrap.classList.remove('active-twitch');
+      if (this.audio) {
+        this.audio.playWoodPlankBreak?.();
       }
 
-      if (this.blackOverlay) {
-        this.blackOverlay.style.transition = 'none';
-        this.blackOverlay.classList.add('active');
+      // Planks violently fly off in 3D
+      const wellPlanks = world?.wellPlanks || [];
+      if (wellPlanks[0]) {
+        wellPlanks[0].position.set(-3.2, 3.8, 1.2);
+        wellPlanks[0].rotation.set(-0.9, 0.6, -1.8);
+      }
+      if (wellPlanks[1]) {
+        wellPlanks[1].position.set(3.2, 3.8, -1.2);
+        wellPlanks[1].rotation.set(0.9, -0.6, 1.8);
       }
 
-      // 6. Sustained quiet pitch-black void for 2.8 seconds, then reveal restart card
+      // 3. Terrifying Void Apparition surges out of the well into screen (at 2700ms)
       setTimeout(() => {
-        if (this.endingCard) {
-          this.endingCard.classList.remove('hidden');
+        if (this.audio) {
+          this.audio.playJumpscareRoar();
         }
-      }, 2800);
-    }, 750);
+
+        if (this.scareCanvas && this.scareCtx) {
+          const w = this.scareCanvas.width;
+          const h = this.scareCanvas.height;
+          this.scareCtx.clearRect(0, 0, w, h);
+          this.drawUncannyPhotorealisticFace(w, h);
+          this.scareCanvas.style.opacity = '1';
+        }
+
+        const scareStartTime = performance.now();
+        const animScare = () => {
+          const now = performance.now();
+          const elapsed = (now - scareStartTime) / 1000;
+          if (elapsed < 1.15) {
+            const progress = elapsed / 1.15;
+            const scale = 0.40 + progress * 1.35 + (Math.random() - 0.5) * 0.08;
+            const jitterX = (Math.random() - 0.5) * 26;
+            const jitterY = (Math.random() - 0.5) * 26;
+            if (this.scareCanvas) {
+              this.scareCanvas.style.transform = `translate(${jitterX}px, ${jitterY}px) scale(${scale.toFixed(3)})`;
+            }
+            requestAnimationFrame(animScare);
+          }
+        };
+        requestAnimationFrame(animScare);
+
+        const canvasWrap = document.getElementById('canvas-wrapper');
+        if (canvasWrap) canvasWrap.classList.add('active-twitch');
+
+        // 4. Instant Slam Cut to Pitch Black Silence (at 3900ms)
+        setTimeout(() => {
+          if (this.scareCanvas) {
+            this.scareCanvas.style.opacity = '0';
+            this.scareCanvas.style.transform = 'none';
+          }
+          if (canvasWrap) canvasWrap.classList.remove('active-twitch');
+
+          if (this.blackOverlay) {
+            this.blackOverlay.style.transition = 'none';
+            this.blackOverlay.classList.add('active');
+          }
+
+          // 5. Reveal Atmospheric Ending Card after 2.4s of quiet void
+          setTimeout(() => {
+            if (this.endingCard) {
+              this.endingCard.classList.remove('hidden');
+            }
+          }, 2400);
+        }, 1150);
+      }, 700);
+    }, 2000);
   }
 }
