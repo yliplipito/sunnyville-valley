@@ -65,27 +65,11 @@ export class Controls3D {
   }
 
   initEventListeners() {
-    document.addEventListener('mousedown', (e) => {
-      if (e.button === 0) this.isHoldingE = true;
-    });
-    document.addEventListener('mouseup', (e) => {
-      if (e.button === 0) this.isHoldingE = false;
-    });
-
     this.domElement.addEventListener('click', () => {
       if (!this.isLocked && !window.inDialogue && !window.inNightmareEnding && !window.isPaused) {
         try {
           this.domElement.requestPointerLock?.()?.catch?.(() => {});
         } catch (e) {}
-        return;
-      }
-
-      const isWellOnClimax = this.hoveredObject?.userData?.type === 'well' && (window.questManager?.currentStep || 0) >= 34;
-      if (this.isLocked && this.hoveredObject && !window.inDialogue && !isWellOnClimax && window.onInteract) {
-        const timeSinceClose = Date.now() - (window.lastDialogueClosedTime || 0);
-        if (timeSinceClose > 300) {
-          window.onInteract(this.hoveredObject);
-        }
       }
     });
 
