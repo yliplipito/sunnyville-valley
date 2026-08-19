@@ -120,22 +120,25 @@ class GameApp {
     const welcomeModal = document.getElementById('welcome-modal');
     const mobileControls = document.getElementById('mobile-controls');
 
-    const resumeAudio = () => {
-      if (this.audio?.ctx && this.audio.ctx.state === 'suspended') {
-        this.audio.ctx.resume().catch(() => {});
+    const unlockAudio = () => {
+      if (this.audio) {
+        this.audio.unlock();
       }
     };
-    window.addEventListener('touchstart', resumeAudio, { passive: true });
-    window.addEventListener('pointerdown', resumeAudio, { passive: true });
+
+    ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(evt => {
+      window.addEventListener(evt, unlockAudio, { passive: true });
+    });
 
     if (startBtn && welcomeModal) {
-      const handleStart = (e) => {
-        if (e) e.preventDefault();
+      const handleStart = () => {
         welcomeModal.classList.add('hidden');
         window.gameStarted = true;
         this.gameStartTime = Date.now();
 
-        this.audio.init();
+        if (this.audio) {
+          this.audio.unlock();
+        }
 
         const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches);
         if (isTouch) {

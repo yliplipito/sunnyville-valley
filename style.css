@@ -36,6 +36,9 @@
 body, html {
   width: 100%;
   height: 100%;
+  height: 100dvh;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   background: #000;
   font-family: var(--font-cute);
@@ -44,9 +47,11 @@ body, html {
 }
 
 #game-app {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   touch-action: none;
 }
@@ -55,11 +60,11 @@ body, html {
    3D CANVAS VIEWPORT (100% IMMERSIVE FULLSCREEN)
    =================================================================== */
 #canvas-wrapper {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   background: #000;
   overflow: hidden;
   cursor: crosshair;
@@ -1257,15 +1262,21 @@ body.is-touch-device .mobile-only {
 /* Action Buttons Cluster (Bottom Right) */
 .mobile-actions {
   position: absolute;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  right: max(16px, env(safe-area-inset-right, 16px));
   display: flex;
-  flex-direction: column;
-  gap: 12px;
   align-items: flex-end;
+  gap: 8px;
   pointer-events: auto;
   z-index: 2;
   touch-action: none;
+}
+
+.mobile-actions-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
 }
 
 .mobile-btn {
@@ -1292,11 +1303,14 @@ body.is-touch-device .mobile-only {
 }
 
 .mobile-sprint-btn {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 50%;
   background: rgba(147, 51, 234, 0.85);
   color: #FAF5FF;
-  padding: 8px 16px;
-  font-size: 14px;
-  min-height: 44px;
+  font-size: 16px;
 }
 
 .mobile-sprint-btn.active {
@@ -1307,22 +1321,26 @@ body.is-touch-device .mobile-only {
 }
 
 .mobile-jump-btn {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 50%;
   background: rgba(14, 165, 233, 0.88);
   color: #F0F9FF;
-  padding: 10px 20px;
-  font-size: 15px;
-  min-height: 48px;
+  font-size: 20px;
 }
 
 .mobile-interact-btn {
   position: relative;
   background: linear-gradient(135deg, #FF6B8B 0%, #FF8E53 100%);
   color: #FFFFFF;
-  padding: 12px 22px;
-  font-size: 16px;
+  padding: 10px 18px;
+  font-size: 15px;
   min-height: 56px;
-  border-radius: 32px;
+  border-radius: 28px;
   border-color: #FFF;
+  white-space: nowrap;
 }
 
 .mobile-interact-btn.active-target {
@@ -1728,42 +1746,58 @@ body.is-touch-device .mobile-only {
 
   /* Left Thumb Joystick */
   .joystick-zone {
-    width: 120px;
-    height: 120px;
-    bottom: max(12px, env(safe-area-inset-bottom, 0px));
-    left: max(16px, env(safe-area-inset-left, 0px));
+    width: 106px;
+    height: 106px;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    left: max(16px, env(safe-area-inset-left, 16px));
   }
 
   .joystick-base {
-    width: 106px;
-    height: 106px;
+    width: 96px;
+    height: 96px;
   }
 
   .joystick-knob {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
   }
 
   /* Right Thumb Actions */
   .mobile-actions {
-    bottom: max(12px, env(safe-area-inset-bottom, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    right: max(16px, env(safe-area-inset-right, 16px));
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 170px;
   }
 
-  .mobile-btn {
-    min-height: 42px;
-    padding: 6px 14px;
-    font-size: 13px;
-    border-radius: 24px;
+  .mobile-actions-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .mobile-sprint-btn {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    font-size: 14px;
+  }
+
+  .mobile-jump-btn {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 18px;
   }
 
   .mobile-interact-btn {
-    min-height: 50px;
-    padding: 8px 20px;
-    font-size: 15px;
+    min-height: 52px;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 26px;
   }
 
   /* Notice Board in Landscape */

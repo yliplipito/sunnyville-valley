@@ -47,16 +47,51 @@ export class AudioManager {
     this.whisperTrimmed = null; // Short breathy whisper phrase (1.68s - 2.35s)
   }
 
+  unlock() {
+    try {
+      if (!this.ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+      }
+
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+
+      // iOS Safari Hardware Primer: Play a 1-sample silent buffer directly to destination
+      if (this.ctx) {
+        const buffer = this.ctx.createBuffer(1, 1, 22050);
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.ctx.destination);
+        source.start(0);
+      }
+
+      if (!this.isInitialized) {
+        this.init();
+      } else if (!this.isPlaying) {
+        this.startMusic();
+      }
+    } catch (e) {
+      console.warn('Audio unlock error:', e);
+    }
+  }
+
   init() {
     if (this.isInitialized) {
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
+      if (!this.isPlaying) {
+        this.startMusic();
+      }
       return;
     }
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioContext();
+      if (!this.ctx) {
+        this.ctx = new AudioContext();
+      }
       if (this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
@@ -277,6 +312,9 @@ export class AudioManager {
 
     const playLoop = () => {
       if (!this.isPlaying || !this.ctx) return;
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
 
       // In Stage 0 (targetCorruptionRatio == 0): Strictly pristine 0.0 with ZERO pitch drift!
       if (this.targetCorruptionRatio <= 0.001) {
@@ -362,53 +400,61 @@ export class AudioManager {
 
   playWarmTone(freq, duration, type = 'sine', vol = 0.14) {
     if (!this.ctx || this.isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
     try {
+      const now = this.ctx.currentTime || 0;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(Math.max(20, freq), now);
 
-      gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.035);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.05, duration));
 
       osc.connect(gain);
       gain.connect(this.musicGain);
 
-      osc.start();
-      osc.stop(this.ctx.currentTime + duration + 0.05);
+      osc.start(now);
+      osc.stop(now + duration + 0.05);
     } catch (e) {}
   }
 
   playSoftBell(freq, duration, vol = 0.10) {
     if (!this.ctx || this.isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
     try {
+      const now = this.ctx.currentTime || 0;
       const carrier = this.ctx.createOscillator();
       const mod = this.ctx.createOscillator();
       const modGain = this.ctx.createGain();
       const gain = this.ctx.createGain();
 
       carrier.type = 'sine';
-      carrier.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      carrier.frequency.setValueAtTime(Math.max(20, freq), now);
 
       mod.type = 'triangle';
-      mod.frequency.setValueAtTime(freq * 1.414, this.ctx.currentTime);
-      modGain.gain.setValueAtTime(freq * 0.40, this.ctx.currentTime);
+      mod.frequency.setValueAtTime(Math.max(20, freq * 1.414), now);
+      modGain.gain.setValueAtTime(Math.max(1, freq * 0.40), now);
 
-      gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.05, duration));
 
       mod.connect(modGain);
       modGain.connect(carrier.frequency);
       carrier.connect(gain);
       gain.connect(this.musicGain);
 
-      carrier.start();
-      mod.start();
+      carrier.start(now);
+      mod.start(now);
 
-      carrier.stop(this.ctx.currentTime + duration + 0.05);
-      mod.stop(this.ctx.currentTime + duration + 0.05);
+      carrier.stop(now + duration + 0.05);
+      mod.stop(now + duration + 0.05);
     } catch (e) {}
   }
 
