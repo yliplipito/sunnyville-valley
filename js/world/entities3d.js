@@ -3,7 +3,7 @@ import * as THREE from 'three';
 /**
  * SUNNYVILLE VALLEY - Stylized 3D Character Models & Dynamic Animations
  * High-quality low-poly Nintendo / Animal Crossing aesthetic with expressive details,
- * idle breathing, eye-tracking, smooth proximity-faded nameplates, and dynamic character transitions.
+ * articulated limbs, idle breathing, eye-tracking, smooth proximity-faded nameplates, and dynamic character transitions.
  */
 export class EntityManager3D {
   constructor(scene) {
@@ -73,7 +73,6 @@ export class EntityManager3D {
     const drawNameplate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Rounded pill badge with subtle drop shadow
       ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
       ctx.shadowBlur = 8;
       ctx.shadowOffsetY = 3;
@@ -103,14 +102,13 @@ export class EntityManager3D {
       ctx.font = 'bold 36px "Fredoka", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${emojiIcon} ${nameText}`, canvas.width / 2, 55);
+      ctx.fillText(emojiIcon + ' ' + nameText, canvas.width / 2, 55);
     };
 
     drawNameplate();
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
-    // Proper depth testing enabled so it respects 3D geometry!
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false });
     const sprite = new THREE.Sprite(spriteMat);
     sprite.scale.set(2.2, 0.6, 1);
@@ -168,6 +166,7 @@ export class EntityManager3D {
     const goldMat = new THREE.MeshLambertMaterial({ color: 0xF59E0B });
     const whiteMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
     const redMat = new THREE.MeshLambertMaterial({ color: 0xDC2626 });
+    const shoeMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
 
     // Head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.48, 18, 18), skinMat);
@@ -190,7 +189,7 @@ export class EntityManager3D {
 
     this.addCuteEyes(head, 0.06, 0.44);
 
-    // Polished Monocle with dangling gold chain
+    // Monocle with dangling gold chain
     const monocle = new THREE.Mesh(new THREE.RingGeometry(0.09, 0.13, 16), goldMat);
     monocle.position.set(0.2, 1.86, 0.46);
     group.add(monocle);
@@ -215,18 +214,18 @@ export class EntityManager3D {
     group.add(goldBand);
 
     // Tailcoat Body & Red Bowtie
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.64, 1.25, 14), navyMat);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.60, 1.15, 14), navyMat);
     body.position.y = 1.05;
     body.castShadow = true;
     group.add(body);
 
-    const shirt = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.42, 0.9, 10), whiteMat);
-    shirt.position.set(0, 1.2, 0.28);
+    const shirt = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.40, 0.85, 10), whiteMat);
+    shirt.position.set(0, 1.15, 0.28);
     shirt.scale.set(0.7, 1, 0.5);
     group.add(shirt);
 
     const bowtie = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.08), redMat);
-    bowtie.position.set(0, 1.52, 0.52);
+    bowtie.position.set(0, 1.48, 0.52);
     group.add(bowtie);
 
     // Gold Pocket Watch Chain across vest
@@ -234,6 +233,46 @@ export class EntityManager3D {
     vestChain.position.set(0, 1.02, 0.52);
     vestChain.rotation.x = Math.PI / 2;
     group.add(vestChain);
+
+    // Articulated Arms & White Gloves
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.65, 8), navyMat);
+    armL.position.set(-0.58, 1.12, 0.05);
+    armL.rotation.z = 0.22;
+    armL.castShadow = true;
+    group.add(armL);
+
+    const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), whiteMat);
+    gloveL.position.set(-0.66, 0.76, 0.08);
+    group.add(gloveL);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.65, 8), navyMat);
+    armR.position.set(0.58, 1.12, 0.05);
+    armR.rotation.z = -0.22;
+    armR.castShadow = true;
+    group.add(armR);
+
+    const gloveR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), whiteMat);
+    gloveR.position.set(0.66, 0.76, 0.08);
+    group.add(gloveR);
+
+    // Trousers & Dress Shoes
+    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.5, 8), navyMat);
+    legL.position.set(-0.24, 0.28, 0);
+    legL.castShadow = true;
+    group.add(legL);
+
+    const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.32), shoeMat);
+    shoeL.position.set(-0.24, 0.06, 0.08);
+    group.add(shoeL);
+
+    const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.5, 8), navyMat);
+    legR.position.set(0.24, 0.28, 0);
+    legR.castShadow = true;
+    group.add(legR);
+
+    const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.32), shoeMat);
+    shoeR.position.set(0.24, 0.06, 0.08);
+    group.add(shoeR);
 
     const nameplate = this.createNameplateSprite("Mayor Barnaby", "🎩", "#1E3A8A");
     nameplate.position.y = 3.35;
@@ -263,6 +302,7 @@ export class EntityManager3D {
     const strawMat = new THREE.MeshLambertMaterial({ color: 0xFDE68A });
     const flowerMat = new THREE.MeshLambertMaterial({ color: 0xFBBF24 });
     const flowerCoreMat = new THREE.MeshLambertMaterial({ color: 0x78350F });
+    const shoeMat = new THREE.MeshLambertMaterial({ color: 0x78350F });
 
     // Head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 18, 18), skinMat);
@@ -313,6 +353,34 @@ export class EntityManager3D {
     apron.position.set(0, 0.88, 0.22);
     group.add(apron);
 
+    // Articulated Arms
+    const puffL = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), dressMat);
+    puffL.position.set(-0.48, 1.25, 0);
+    group.add(puffL);
+
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.45, 8), skinMat);
+    armL.position.set(-0.52, 0.98, 0.12);
+    armL.rotation.x = 0.35;
+    group.add(armL);
+
+    const puffR = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), dressMat);
+    puffR.position.set(0.48, 1.25, 0);
+    group.add(puffR);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.45, 8), skinMat);
+    armR.position.set(0.52, 0.98, 0.12);
+    armR.rotation.x = 0.35;
+    group.add(armR);
+
+    // Shoes
+    const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.10, 0.24), shoeMat);
+    shoeL.position.set(-0.20, 0.05, 0.06);
+    group.add(shoeL);
+
+    const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.10, 0.24), shoeMat);
+    shoeR.position.set(0.20, 0.05, 0.06);
+    group.add(shoeR);
+
     // Wicker Flower Basket filled with Sunflowers
     const basketGroup = new THREE.Group();
     const basket = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.35, 10), new THREE.MeshLambertMaterial({ color: 0x92400E }));
@@ -336,7 +404,7 @@ export class EntityManager3D {
       basketGroup.add(fCore);
     }
 
-    basketGroup.position.set(0.52, 0.95, 0.22);
+    basketGroup.position.set(0.48, 0.95, 0.26);
     group.add(basketGroup);
 
     const nameplate = this.createNameplateSprite("Daisy", "🌻", "#EC4899");
@@ -393,7 +461,7 @@ export class EntityManager3D {
     group.add(hatPuff);
 
     // Double-breasted Baker Jacket
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 1.2, 12), whiteMat);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 1.15, 12), whiteMat);
     body.position.y = 1.05;
     body.castShadow = true;
     group.add(body);
@@ -402,6 +470,34 @@ export class EntityManager3D {
     apron.position.set(0, 0.95, 0.54);
     group.add(apron);
 
+    // Baker Arms
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.55, 8), whiteMat);
+    armL.position.set(-0.56, 1.15, 0.18);
+    armL.rotation.x = 0.45;
+    group.add(armL);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.55, 8), whiteMat);
+    armR.position.set(0.56, 1.15, 0.18);
+    armR.rotation.x = 0.45;
+    group.add(armR);
+
+    // Baker Trousers & Clogs
+    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.13, 0.48, 8), blueMat);
+    legL.position.set(-0.24, 0.26, 0);
+    group.add(legL);
+
+    const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.28), whiteMat);
+    shoeL.position.set(-0.24, 0.06, 0.06);
+    group.add(shoeL);
+
+    const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.13, 0.48, 8), blueMat);
+    legR.position.set(0.24, 0.26, 0);
+    group.add(legR);
+
+    const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.28), whiteMat);
+    shoeR.position.set(0.24, 0.06, 0.06);
+    group.add(shoeR);
+
     // Baker's Wooden Peel with Warm Fresh Berry Pie
     const peelGroup = new THREE.Group();
     const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.4, 6), woodMat);
@@ -409,7 +505,6 @@ export class EntityManager3D {
     handle.position.z = -0.3;
     peelGroup.add(handle);
 
-    const paddle = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.45, 0.06, 16), woodMat);
     const pieGroup = new THREE.Group();
     const pieCrust = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 0.12, 14), crustMat);
     pieCrust.position.set(0, 0.08, 0.5);
@@ -450,6 +545,8 @@ export class EntityManager3D {
     const shirtMat = new THREE.MeshLambertMaterial({ color: 0xFBBF24 });
     const capMat = new THREE.MeshLambertMaterial({ color: 0xDC2626 });
     const balloonMat = new THREE.MeshLambertMaterial({ color: 0xEF4444 });
+    const sneakerMat = new THREE.MeshLambertMaterial({ color: 0xDC2626 });
+    const soleMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
 
     // Head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), skinMat);
@@ -471,14 +568,50 @@ export class EntityManager3D {
     group.add(capVisor);
 
     // Striped Shirt & Denim Dungarees
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.78, 0.42), denimMat);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.72, 0.40), denimMat);
     body.position.y = 0.72;
     body.castShadow = true;
     group.add(body);
 
-    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.35, 0.44), shirtMat);
+    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.32, 0.42), shirtMat);
     shirt.position.set(0, 0.88, 0);
     group.add(shirt);
+
+    // Timmy Arms
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.42, 8), shirtMat);
+    armL.position.set(-0.38, 0.78, 0.05);
+    armL.rotation.z = 0.2;
+    group.add(armL);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.42, 8), shirtMat);
+    armR.position.set(0.38, 0.88, 0.12);
+    armR.rotation.x = 0.6;
+    group.add(armR);
+
+    // Sneakers
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.32, 0.2), denimMat);
+    legL.position.set(-0.16, 0.22, 0);
+    group.add(legL);
+
+    const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.10, 0.24), sneakerMat);
+    shoeL.position.set(-0.16, 0.05, 0.04);
+    group.add(shoeL);
+
+    const soleL = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.03, 0.25), soleMat);
+    soleL.position.set(-0.16, 0.015, 0.04);
+    group.add(soleL);
+
+    const legR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.32, 0.2), denimMat);
+    legR.position.set(0.16, 0.22, 0);
+    group.add(legR);
+
+    const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.10, 0.24), sneakerMat);
+    shoeR.position.set(0.16, 0.05, 0.04);
+    group.add(shoeR);
+
+    const soleR = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.03, 0.25), soleMat);
+    soleR.position.set(0.16, 0.015, 0.04);
+    group.add(soleR);
 
     // Tethered Floating Red Balloon
     const balloonGroup = new THREE.Group();
@@ -525,6 +658,7 @@ export class EntityManager3D {
     const noseMat = new THREE.MeshLambertMaterial({ color: 0x1F2937 });
     const collarMat = new THREE.MeshLambertMaterial({ color: 0xEF4444 });
     const goldMat = new THREE.MeshLambertMaterial({ color: 0xFBBF24 });
+    const tongueMat = new THREE.MeshLambertMaterial({ color: 0xF472B6 });
 
     // Fluffy Body
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.72, 1.45), furMat);
@@ -536,7 +670,7 @@ export class EntityManager3D {
     chest.position.set(0, 0.66, 0.45);
     group.add(chest);
 
-    // 4 Paws
+    // 4 Paws with pads
     const pawFL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.4, 8), furMat);
     pawFL.position.set(-0.32, 0.2, 0.5);
     pawFL.castShadow = true;
@@ -570,6 +704,12 @@ export class EntityManager3D {
     const nose = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), noseMat);
     nose.position.set(0, 1.14, 1.36);
     group.add(nose);
+
+    // Cute panting tongue
+    const tongue = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.2), tongueMat);
+    tongue.position.set(0, 0.94, 1.25);
+    tongue.rotation.x = 0.25;
+    group.add(tongue);
 
     // Floppy Animated Ears
     const earL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.44, 0.24), furMat);
@@ -623,6 +763,8 @@ export class EntityManager3D {
     const sweaterMat = new THREE.MeshLambertMaterial({ color: 0x991B1B });
     const pantsMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
     const caneMat = new THREE.MeshLambertMaterial({ color: 0x451A03 });
+    const brassMat = new THREE.MeshLambertMaterial({ color: 0xF59E0B });
+    const shoeMat = new THREE.MeshLambertMaterial({ color: 0x271710 });
 
     // Head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 16, 16), skinMat);
@@ -630,7 +772,7 @@ export class EntityManager3D {
     head.castShadow = true;
     group.add(head);
 
-    // Bushy White Mustache & Hair Tufts
+    // Bushy White Mustache & Beard
     const beard = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.48, 8), hairMat);
     beard.position.set(0, 1.28, 0.38);
     beard.rotation.x = -Math.PI / 5.5;
@@ -644,44 +786,71 @@ export class EntityManager3D {
     hairR.position.set(0.38, 1.48, -0.05);
     group.add(hairR);
 
+    // Round Spectacles
+    const glassesL = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 12), brassMat);
+    glassesL.position.set(-0.16, 1.50, 0.44);
+    group.add(glassesL);
+
+    const glassesR = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.08, 12), brassMat);
+    glassesR.position.set(0.16, 1.50, 0.44);
+    group.add(glassesR);
+
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.015, 0.015), brassMat);
+    bridge.position.set(0, 1.50, 0.44);
+    group.add(bridge);
+
     // Tweed Newsboy Flat Cap
     const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.48, 0.18, 12), new THREE.MeshLambertMaterial({ color: 0x78350F }));
     cap.position.set(0, 1.82, -0.04);
     cap.rotation.x = -0.15;
     group.add(cap);
 
-    // Spectacles
-    const specL = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 10), new THREE.MeshBasicMaterial({ color: 0x0F172A }));
-    specL.position.set(-0.16, 1.54, 0.45);
-    group.add(specL);
-
-    const specR = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.1, 10), new THREE.MeshBasicMaterial({ color: 0x0F172A }));
-    specR.position.set(0.16, 1.54, 0.45);
-    group.add(specR);
-
-    // Seated Body & Legs resting on ground
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.88, 0.65), sweaterMat);
-    body.position.y = 0.98;
+    // Knit Cardigan Torso
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.58, 0.95, 12), sweaterMat);
+    body.position.y = 0.92;
     body.castShadow = true;
     group.add(body);
 
-    const legs = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.4, 0.72), pantsMat);
-    legs.position.set(0, 0.52, 0.42);
-    legs.castShadow = true;
+    // Cardigan Arms & Hands
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.55, 8), sweaterMat);
+    armL.position.set(-0.52, 0.95, 0.15);
+    armL.rotation.x = 0.55;
+    group.add(armL);
+
+    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.55, 8), sweaterMat);
+    armR.position.set(0.52, 0.95, 0.15);
+    armR.rotation.x = 0.55;
+    group.add(armR);
+
+    // Seated Trousers & Oxford Shoes
+    const legs = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.35, 0.65), pantsMat);
+    legs.position.set(0, 0.48, 0.25);
     group.add(legs);
 
-    // Carved Walking Cane
-    const cane = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.15, 6), caneMat);
-    cane.position.set(0.48, 0.58, 0.42);
-    cane.rotation.z = -0.18;
-    cane.castShadow = true;
+    const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.28), shoeMat);
+    shoeL.position.set(-0.22, 0.06, 0.52);
+    group.add(shoeL);
+
+    const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.28), shoeMat);
+    shoeR.position.set(0.22, 0.06, 0.52);
+    group.add(shoeR);
+
+    // Polished Wooden Walking Cane
+    const cane = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.15, 6), caneMat);
+    cane.position.set(0.48, 0.58, 0.45);
+    cane.rotation.x = 0.15;
     group.add(cane);
 
+    const caneHandle = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 6, 12, Math.PI), brassMat);
+    caneHandle.position.set(0.48, 1.15, 0.45);
+    caneHandle.rotation.y = Math.PI / 2;
+    group.add(caneHandle);
+
     const nameplate = this.createNameplateSprite("Old Man Gregory", "👴", "#475569");
-    nameplate.position.y = 2.35;
+    nameplate.position.y = 2.45;
     group.add(nameplate);
 
-    group.position.set(x, 0.1, z);
+    group.position.set(x, 0, z);
     group.userData = {
       interactable: true,
       id: 'gregory',
@@ -691,16 +860,15 @@ export class EntityManager3D {
     };
 
     this.scene.add(group);
-    return { id: 'gregory', group, head, nameplate, initialPos: new THREE.Vector3(x, 0.1, z) };
+    return { id: 'gregory', group, head, nameplate, initialPos: new THREE.Vector3(x, 0, z) };
   }
 
-  // --- SHADOW SPECTER (PERIPHERAL UNCANNY SILHOUETTE ENTITY) ---
+  // --- THE SPECTRAL SHADOW ENTITY (WHISPERING WOODS) ---
   createShadowStalker() {
     const group = new THREE.Group();
     const shadowMat = new THREE.MeshBasicMaterial({ color: 0x09090B, transparent: true, opacity: 0.95 });
     const eyeMat = new THREE.MeshBasicMaterial({ color: 0xF8FAFC });
 
-    // Flowing hooded cloak silhouette
     const cowl = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.95, 14), shadowMat);
     cowl.position.set(0, 3.85, 0);
     cowl.rotation.x = 0.08;
@@ -710,7 +878,6 @@ export class EntityManager3D {
     head.position.set(0, 3.45, 0.08);
     group.add(head);
 
-    // Pale, piercing spectral gaze
     const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), eyeMat);
     eyeL.position.set(-0.13, 3.52, 0.4);
     group.add(eyeL);
@@ -719,7 +886,6 @@ export class EntityManager3D {
     eyeR.position.set(0.13, 3.52, 0.4);
     group.add(eyeR);
 
-    // Tapered flowing shroud body
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.65, 2.6, 12), shadowMat);
     body.position.y = 2.0;
     group.add(body);
@@ -728,7 +894,6 @@ export class EntityManager3D {
     lowerDrape.position.y = 0.7;
     group.add(lowerDrape);
 
-    // Draped cloak sleeves / arms
     const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.06, 1.8, 8), shadowMat);
     armL.position.set(-0.55, 2.4, 0.1);
     armL.rotation.z = 0.15;
@@ -751,7 +916,6 @@ export class EntityManager3D {
     this.stalkerEntity.isVisible = true;
     this.stalkerEntity.spawnTime = Date.now();
 
-    // Auto-despawn quickly (650ms) so it remains a fleeting corner-of-the-eye hallucination
     if (this.stalkerTimeout) clearTimeout(this.stalkerTimeout);
     this.stalkerTimeout = setTimeout(() => {
       this.despawnStalker();
@@ -810,12 +974,10 @@ export class EntityManager3D {
 
     // 1. NPC Idle Animations & Tracking
     this.npcs.forEach(npc => {
-      // Idle Breathing & gentle sway
       if (npc.group) {
         npc.group.position.y = npc.initialPos.y + Math.sin(t * 1.8 + (npc.group.id || 0)) * 0.025;
       }
 
-      // Head-tracking towards player & distance-fading nameplates
       if (npc.head && playerPos) {
         const dx = playerPos.x - npc.group.position.x;
         const dz = playerPos.z - npc.group.position.z;
@@ -842,25 +1004,22 @@ export class EntityManager3D {
         }
       }
 
-      // Buster Dog Tail wagging
       if (npc.id === 'dog' && npc.tail) {
         npc.tail.rotation.z = Math.sin(t * 4.5) * 0.35;
       }
 
-      // Timmy Balloon bobbing
       if (npc.id === 'timmy' && npc.balloonGroup) {
         npc.balloonGroup.position.y = Math.sin(t * 2.0) * 0.08;
         npc.balloonGroup.rotation.z = Math.cos(t * 1.5) * 0.05;
       }
 
-      // Baker Benny Pie Visibility
       if (npc.id === 'baker' && npc.pieGroup) {
         const hasGivenPie = window.questManager?.hasTart || (window.questManager?.currentStep || 0) >= 19;
         npc.pieGroup.visible = !hasGivenPie;
       }
     });
 
-    // 2. Stalker Fleeting Peripheral Check (Vanishes instantly when glanced at)
+    // 2. Stalker Fleeting Peripheral Check
     if (this.stalkerEntity && this.stalkerEntity.isVisible && window.gameCamera) {
       const cam = window.gameCamera;
       const stalkerPos = this.stalkerEntity.group.position;

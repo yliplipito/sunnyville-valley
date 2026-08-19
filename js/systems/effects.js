@@ -377,6 +377,10 @@ export class ScareManager {
     if (crosshair) crosshair.style.display = 'none';
     const pill = document.getElementById('resume-pill');
     if (pill) pill.classList.add('hidden');
+    const noticeModal = document.getElementById('notice-board-modal');
+    if (noticeModal) noticeModal.classList.add('hidden');
+    const dialogueBox = document.getElementById('dialogue-box');
+    if (dialogueBox) dialogueBox.classList.add('hidden');
 
     const camera = window.gameCamera;
     const world = window.worldScene;
@@ -410,8 +414,24 @@ export class ScareManager {
       this.scareCtx.clearRect(0, 0, w, h);
       this.drawUncannyPhotorealisticFace(w, h);
       this.scareCanvas.style.opacity = '1';
-      this.scareCanvas.style.transform = 'scale(1.08)';
     }
+
+    const scareStartTime = performance.now();
+    const animScare = () => {
+      const now = performance.now();
+      const elapsed = (now - scareStartTime) / 1000;
+      if (elapsed < 0.72) {
+        const progress = elapsed / 0.72;
+        const scale = 0.45 + progress * 1.15 + (Math.random() - 0.5) * 0.06;
+        const jitterX = (Math.random() - 0.5) * 20;
+        const jitterY = (Math.random() - 0.5) * 20;
+        if (this.scareCanvas) {
+          this.scareCanvas.style.transform = `translate(${jitterX}px, ${jitterY}px) scale(${scale.toFixed(3)})`;
+        }
+        requestAnimationFrame(animScare);
+      }
+    };
+    requestAnimationFrame(animScare);
 
     this.triggerScreenTwitch(800);
 

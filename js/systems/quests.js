@@ -272,7 +272,7 @@ export class QuestManager {
       {
         id: 'find_balloon',
         targetType: 'balloon',
-        title: 'Retrieve the red balloon from the woods edge.',
+        title: 'Retrieve the red balloon from the orchard meadow.',
         targetCorruption: 72.0
       },
       // 31. Return Balloon to Timmy
@@ -459,27 +459,27 @@ export class QuestManager {
         grid.innerHTML = `
           <div class="notice-paper flyer-festival">
             <span class="pin-badge">📌</span>
-            <h3>🏮 Evening Festival Notice</h3>
-            <p>The golden lanterns are lit. All citizens are invited to gather near the woods path as dusk deepens.</p>
+            <h3>🏮 Evening Gathering</h3>
+            <p>Lanterns are lit. Gather near the woods path as dusk deepens.</p>
             <p class="notice-signature">— Mayor Barnaby</p>
           </div>
           <div class="notice-paper flyer-bakery">
             <span class="pin-badge">📌</span>
             <h3>🧁 Bakery Notice</h3>
-            <p>The evening batch of wildberry tarts has finished. The ovens are now resting for the night.</p>
+            <p>Wildberry tarts finished. Ovens resting for the night.</p>
             <p class="notice-signature">— Baker Benny</p>
           </div>
           <div class="notice-paper flyer-flowers">
             <span class="pin-badge">📌</span>
             <h3>🌻 Flowerbed Advisory</h3>
-            <p>The sunflowers have closed their blossoms for the night. Enjoy the evening air.</p>
-            <p class="notice-signature">— Daisy the Florist</p>
+            <p>Sunflowers have closed their petals. Check on Daisy.</p>
+            <p class="notice-signature">— Daisy</p>
           </div>
           <div class="notice-paper flyer-reminder">
             <span class="pin-badge">📌</span>
-            <h3>🌲 Whispering Woods Advisory</h3>
-            <p>The deep northern trail beyond the old well is closed. Please remain near the lit plaza.</p>
-            <p class="notice-signature">— Village Committee</p>
+            <h3>🌲 Woods Notice</h3>
+            <p>Deep trail beyond the well is closed. Stay in the plaza.</p>
+            <p class="notice-signature">— Committee</p>
           </div>
         `;
       } else {
@@ -487,27 +487,27 @@ export class QuestManager {
         grid.innerHTML = `
           <div class="notice-paper flyer-festival">
             <span class="pin-badge">📌</span>
-            <h3>🌞 Annual Summer Festival</h3>
-            <p>Welcome all friends and neighbors! Celebrate the sunny season in our town plaza.</p>
+            <h3>🌞 Summer Festival</h3>
+            <p>Welcome neighbors! Celebrate the sunny season in our town plaza.</p>
             <p class="notice-signature">— Mayor Barnaby</p>
           </div>
           <div class="notice-paper flyer-bakery">
             <span class="pin-badge">📌</span>
-            <h3>🧁 Sunshine Bakery Special</h3>
-            <p>Fresh blueberry tarts baking all afternoon! Grab a warm slice outside the bakery counter.</p>
+            <h3>🧁 Bakery Special</h3>
+            <p>Hot wildberry tarts all afternoon outside Sunshine Bakery!</p>
             <p class="notice-signature">— Baker Benny</p>
           </div>
           <div class="notice-paper flyer-flowers">
             <span class="pin-badge">📌</span>
-            <h3>🌻 Flowerbed Care Tip</h3>
-            <p>Be sure to water the town planters! Sunflowers love the bright morning light.</p>
-            <p class="notice-signature">— Daisy the Florist</p>
+            <h3>🌻 Flowerbed Care</h3>
+            <p>Please water the town sunflowers in the plaza planters!</p>
+            <p class="notice-signature">— Daisy</p>
           </div>
           <div class="notice-paper flyer-reminder">
             <span class="pin-badge">📌</span>
-            <h3>🌲 Whispering Woods Advisory</h3>
-            <p>The deep northern trail beyond the old well is closed for festival setup.</p>
-            <p class="notice-signature">— Village Committee</p>
+            <h3>🌲 Woods Notice</h3>
+            <p>Northern woods trail past the old well is closed.</p>
+            <p class="notice-signature">— Committee</p>
           </div>
         `;
       }
@@ -656,7 +656,6 @@ export class QuestManager {
       if (this.audio) this.audio.playSparkle();
       this.advanceStep(this.goals[0].targetCorruption);
     } else if (this.currentStep === 33) {
-      if (this.audio) this.audio.playGlitchStab();
       this.advanceStep(this.goals[33].targetCorruption);
     }
   }

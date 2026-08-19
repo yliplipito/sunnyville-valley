@@ -728,48 +728,72 @@ export class AudioManager {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     try {
-      // 1. Sub-bass visceral thud
+      // 1. High-Frequency Piercing Tinnitus Needle Shock ("The Pitch Sound")
+      const pitchOsc = this.ctx.createOscillator();
+      const pitchGain = this.ctx.createGain();
+      pitchOsc.type = 'sine';
+      pitchOsc.frequency.setValueAtTime(5400, t);
+      pitchOsc.frequency.linearRampToValueAtTime(7800, t + 0.12);
+      pitchOsc.frequency.exponentialRampToValueAtTime(3200, t + 0.70);
+
+      pitchGain.gain.setValueAtTime(0.45, t);
+      pitchGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
+
+      pitchOsc.connect(pitchGain);
+      pitchGain.connect(this.masterGain);
+      pitchOsc.start(t);
+      pitchOsc.stop(t + 0.75);
+
+      // 2. Sub-Audible Visceral Earthquake Thud
       const sub = this.ctx.createOscillator();
       const subGain = this.ctx.createGain();
-      sub.type = 'sawtooth';
-      sub.frequency.setValueAtTime(140, t);
-      sub.frequency.exponentialRampToValueAtTime(30, t + 0.8);
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(80, t);
+      sub.frequency.exponentialRampToValueAtTime(22, t + 0.70);
       subGain.gain.setValueAtTime(0.95, t);
-      subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
       sub.connect(subGain);
       subGain.connect(this.masterGain);
       sub.start(t);
-      sub.stop(t + 0.9);
+      sub.stop(t + 0.75);
 
-      // 2. Piercing demonic screech / glitch distortion
-      const screech = this.ctx.createOscillator();
+      // 3. Demonic Guttural Distorted Scream
+      const scream = this.ctx.createOscillator();
       const sGain = this.ctx.createGain();
-      screech.type = 'sawtooth';
-      screech.frequency.setValueAtTime(880, t);
-      screech.frequency.linearRampToValueAtTime(2200, t + 0.15);
-      screech.frequency.exponentialRampToValueAtTime(160, t + 0.75);
-      sGain.gain.setValueAtTime(0.85, t);
-      sGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-      screech.connect(sGain);
-      sGain.connect(this.masterGain);
-      screech.start(t);
-      screech.stop(t + 0.85);
+      const sFilter = this.ctx.createBiquadFilter();
+      scream.type = 'sawtooth';
+      sFilter.type = 'bandpass';
+      sFilter.frequency.setValueAtTime(1400, t);
+      sFilter.frequency.exponentialRampToValueAtTime(450, t + 0.70);
+      sFilter.Q.setValueAtTime(4.0, t);
 
-      // 3. Harsh distorted white noise blast
-      const bSize = Math.floor(this.ctx.sampleRate * 0.7);
+      scream.frequency.setValueAtTime(520, t);
+      scream.frequency.linearRampToValueAtTime(1850, t + 0.10);
+      scream.frequency.exponentialRampToValueAtTime(110, t + 0.70);
+
+      sGain.gain.setValueAtTime(0.85, t);
+      sGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
+
+      scream.connect(sFilter);
+      sFilter.connect(sGain);
+      sGain.connect(this.masterGain);
+      scream.start(t);
+      scream.stop(t + 0.75);
+
+      // 4. Harsh Splintering Noise Blast
+      const bSize = Math.floor(this.ctx.sampleRate * 0.75);
       const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.25));
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.18));
       }
       const noise = this.ctx.createBufferSource();
       noise.buffer = buffer;
       const nFilter = this.ctx.createBiquadFilter();
-      nFilter.type = 'bandpass';
-      nFilter.frequency.setValueAtTime(1800, t);
-      nFilter.Q.setValueAtTime(2.0, t);
+      nFilter.type = 'highpass';
+      nFilter.frequency.setValueAtTime(800, t);
       const nGain = this.ctx.createGain();
-      nGain.gain.setValueAtTime(0.9, t);
+      nGain.gain.setValueAtTime(0.70, t);
       nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
       noise.connect(nFilter);
       nFilter.connect(nGain);

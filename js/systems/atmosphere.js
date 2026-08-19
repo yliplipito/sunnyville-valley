@@ -142,9 +142,9 @@ export class CorruptionManager {
   update(delta) {
     if (!window.gameStarted || window.inNightmareEnding) return;
 
-    // Smooth continuous lerp from current corruption to target corruption
+    // Smooth continuous imperceptible lerp from current corruption to target corruption
     if (Math.abs(this.corruption - this.targetCorruption) > 0.01) {
-      this.corruption = THREE.MathUtils.lerp(this.corruption, this.targetCorruption, delta * 0.35);
+      this.corruption = THREE.MathUtils.lerp(this.corruption, this.targetCorruption, delta * 0.18);
       this.applyCorruptionEffects();
     }
   }

@@ -944,8 +944,8 @@ export class WorldScene3D {
 
     this.collisionObstacles.push({ type: 'cylinder', x: 0, z: -44, radius: 2.3 });
 
-    // Lost Red Balloon near forest trail edge
-    this.buildRedBalloon(-3.5, -30.0);
+    // Lost Red Balloon in peaceful meadow orchard near apple trees (far from well)
+    this.buildRedBalloon(18.5, -16.0);
   }
 
   buildRedBalloon(x, z) {
@@ -1663,36 +1663,43 @@ export class WorldScene3D {
   setCorruption(ratio) {
     this.corruptionRatio = Math.max(0, Math.min(1, ratio));
 
-    if (this.corruptionRatio < 0.18) {
-      this.targetSkyColor.setHex(0x87CEEB);
-      this.targetFogColor.setHex(0x87CEEB);
-      if (this.groundMesh) this.groundMesh.material.color.setHex(0x58C472);
-      if (this.fountainWater) this.fountainWater.material.color.setHex(0x38BDF8);
-    } else if (this.corruptionRatio < 0.40) {
-      this.targetSkyColor.setHex(0x93C5FD);
-      this.targetFogColor.setHex(0x93C5FD);
-      if (this.groundMesh) this.groundMesh.material.color.setHex(0x65A30D);
-      if (this.fountainWater) this.fountainWater.material.color.setHex(0x0284C7);
-    } else if (this.corruptionRatio < 0.65) {
-      this.targetSkyColor.setHex(0xFBBF24);
-      this.targetFogColor.setHex(0xF59E0B);
-      if (this.groundMesh) this.groundMesh.material.color.setHex(0x3F6212);
-      if (this.fountainWater) this.fountainWater.material.color.setHex(0x0369A1);
-    } else if (this.corruptionRatio < 0.85) {
-      this.targetSkyColor.setHex(0x3B0764);
-      this.targetFogColor.setHex(0x2E1065);
-      if (this.groundMesh) this.groundMesh.material.color.setHex(0x14532D);
-      if (this.fountainWater) this.fountainWater.material.color.setHex(0x1E3A8A);
+    // Continuous Multi-Stop Gradient Interpolation (Imperceptible, organic drift)
+    // 0.00 -> Serene Morning Sky (0x87CEEB)
+    // 0.35 -> Soft Afternoon Blue (0x90C8F2)
+    // 0.60 -> Mellow Warm Golden Blue (0x85A8D8)
+    // 0.80 -> Twilight Violet Sky (0x4A4E7A)
+    // 1.00 -> Pitch Eclipse Void (0x0F0D1A)
+    const r = this.corruptionRatio;
+
+    if (r <= 0.35) {
+      const f = r / 0.35;
+      this.targetSkyColor.lerpColors(new THREE.Color(0x87CEEB), new THREE.Color(0x90C8F2), f);
+      this.targetFogColor.lerpColors(new THREE.Color(0x87CEEB), new THREE.Color(0x90C8F2), f);
+      if (this.groundMesh) this.groundMesh.material.color.lerpColors(new THREE.Color(0x58C472), new THREE.Color(0x52BC6C), f);
+      if (this.fountainWater) this.fountainWater.material.color.lerpColors(new THREE.Color(0x38BDF8), new THREE.Color(0x0284C7), f);
+    } else if (r <= 0.65) {
+      const f = (r - 0.35) / 0.30;
+      this.targetSkyColor.lerpColors(new THREE.Color(0x90C8F2), new THREE.Color(0x85A8D8), f);
+      this.targetFogColor.lerpColors(new THREE.Color(0x90C8F2), new THREE.Color(0x85A8D8), f);
+      if (this.groundMesh) this.groundMesh.material.color.lerpColors(new THREE.Color(0x52BC6C), new THREE.Color(0x48A85E), f);
+      if (this.fountainWater) this.fountainWater.material.color.lerpColors(new THREE.Color(0x0284C7), new THREE.Color(0x0369A1), f);
+    } else if (r <= 0.85) {
+      const f = (r - 0.65) / 0.20;
+      this.targetSkyColor.lerpColors(new THREE.Color(0x85A8D8), new THREE.Color(0x4A4E7A), f);
+      this.targetFogColor.lerpColors(new THREE.Color(0x85A8D8), new THREE.Color(0x3E4065), f);
+      if (this.groundMesh) this.groundMesh.material.color.lerpColors(new THREE.Color(0x48A85E), new THREE.Color(0x2E683D), f);
+      if (this.fountainWater) this.fountainWater.material.color.lerpColors(new THREE.Color(0x0369A1), new THREE.Color(0x1E3A8A), f);
     } else {
-      this.targetSkyColor.setHex(0x180000);
-      this.targetFogColor.setHex(0x0F0000);
-      if (this.groundMesh) this.groundMesh.material.color.setHex(0x052E16);
-      if (this.fountainWater) this.fountainWater.material.color.setHex(0x0F172A);
+      const f = (r - 0.85) / 0.15;
+      this.targetSkyColor.lerpColors(new THREE.Color(0x4A4E7A), new THREE.Color(0x0F0D1A), f);
+      this.targetFogColor.lerpColors(new THREE.Color(0x3E4065), new THREE.Color(0x09080E), f);
+      if (this.groundMesh) this.groundMesh.material.color.lerpColors(new THREE.Color(0x2E683D), new THREE.Color(0x132B1A), f);
+      if (this.fountainWater) this.fountainWater.material.color.lerpColors(new THREE.Color(0x1E3A8A), new THREE.Color(0x0A0F1D), f);
     }
 
     // Update Wish Coins in Fountain
     if (this.fountainCoins) {
-      const coinColor = this.corruptionRatio >= 0.5 ? 0x1E293B : (this.corruptionRatio >= 0.25 ? 0x78350F : 0xFBBF24);
+      const coinColor = this.corruptionRatio >= 0.75 ? 0x1E293B : (this.corruptionRatio >= 0.45 ? 0x78350F : 0xFBBF24);
       this.fountainCoins.forEach(coin => {
         coin.material.color.setHex(coinColor);
       });
@@ -1701,9 +1708,9 @@ export class WorldScene3D {
     // Update Festival Bunting Flags
     if (this.buntingFlags) {
       this.buntingFlags.forEach(flagObj => {
-        if (this.corruptionRatio >= 0.75) {
+        if (this.corruptionRatio >= 0.80) {
           flagObj.mesh.material.color.setHex(0x1E293B);
-        } else if (this.corruptionRatio >= 0.45) {
+        } else if (this.corruptionRatio >= 0.55) {
           flagObj.mesh.material.color.setHex(0x64748B);
         } else {
           flagObj.mesh.material.color.setHex(flagObj.origColor);

@@ -157,17 +157,20 @@ export class DialogueSystem {
       }
       if (step === 25) {
         return [
-          "The ovens are cooling down... There is a new evening note pinned to the Town Notice Board."
+          "The ovens are cooling down for the evening... 🧁",
+          "There is a new evening note pinned to the Town Notice Board. You should go read it."
         ];
       }
       if (step < 14) {
         return [
-          "Hello! 🧁 Sunshine Bakery will have fresh festival pastries ready very soon!"
+          "Hello! 🧁 Sunshine Bakery will have fresh festival pastries ready very soon!",
+          "Make sure to speak with Daisy at the flowerbeds first!"
         ];
       }
       if (step > 18 && step < 25) {
         return [
-          "Timmy is going to love that blueberry tart! 🧁 Enjoy the festival!"
+          "Timmy is going to love that blueberry tart! 🧁 Enjoy the festival!",
+          "Old Man Gregory on his bench was looking for you."
         ];
       }
       return [
@@ -185,18 +188,20 @@ export class DialogueSystem {
       }
       if (step === 24) {
         return [
-          "Look at the lanterns glow! 🎈 But the shadows look so long... Baker Benny wanted to see you."
+          "Look at the lanterns glow! 🎈 But the shadows look so long...",
+          "Baker Benny over at Sunshine Bakery wanted to see you!"
         ];
       }
       if (step === 31) {
         return [
-          "You found my red balloon! 🎈 Thank you...",
+          "You found my red balloon in the meadow! 🎈 Thank you...",
           "The air feels so cold now... Old Man Gregory is waiting on his bench."
         ];
       }
       if (step < 19) {
         return [
-          "Hi! 🎈 I love playing with my red balloon! I hope Baker Benny has warm tarts ready soon!"
+          "Hi! 🎈 I love playing with my red balloon!",
+          "I hope Baker Benny has warm tarts ready soon!"
         ];
       }
       if (step > 19 && step < 24) {
@@ -220,23 +225,25 @@ export class DialogueSystem {
       if (step === 22) {
         return [
           "My pocket watch! 👴 You found it! Thank you kindly, young friend.",
-          "Mayor Barnaby is preparing to illuminate the plaza for the evening. Go speak with him."
+          "Mayor Barnaby is preparing to illuminate the plaza for the evening. Go speak with him at Town Hall."
         ];
       }
       if (step === 29) {
         return [
           "The wind has died down completely. 👴",
-          "Little Timmy let go of his red balloon by mistake... it drifted toward the edge of Whispering Woods. Could you retrieve it for the boy?"
+          "Little Timmy let go of his red balloon by mistake... it drifted toward the orchard meadow. Could you retrieve it for the boy?"
         ];
       }
       if (step === 32) {
         return [
-          "The festival gathering is beginning, child. 👴 Go speak with Mayor Barnaby at Town Hall. He is waiting."
+          "The festival gathering is beginning, child. 👴",
+          "Go speak with Mayor Barnaby at Town Hall. He is waiting for you."
         ];
       }
       if (step < 20) {
         return [
-          "Enjoy our peaceful valley, young friend. 👴 Take your time."
+          "Enjoy our peaceful valley, young friend. 👴 Take your time.",
+          "The fountain water looks so sparkling this morning."
         ];
       }
       if (step > 20 && step < 29) {
