@@ -338,46 +338,149 @@ export class QuestManager {
     const goal = this.goals[this.currentStep];
     if (!goal) return null;
 
+    const em = window.entityManager;
+    const ws = window.worldScene;
+
+    // 1. NPC Targets
     if (goal.targetType === 'npc') {
+      const npc = em?.getNPC?.(goal.targetId);
+      if (npc?.group) {
+        return {
+          x: npc.group.position.x,
+          y: (goal.targetId === 'timmy' ? 1.8 : 2.2),
+          z: npc.group.position.z
+        };
+      }
       const npcMap = {
-        mayor: { x: 0, y: 0.5, z: 18.0 },
-        daisy: { x: 6.2, y: 0.5, z: 4.2 },
-        baker: { x: 24.5, y: 0.5, z: 1.8 },
-        timmy: { x: -16.5, y: 0.5, z: 2.2 },
-        gregory: { x: 0, y: 0.5, z: 9.2 }
+        mayor: { x: 0, y: 2.2, z: 18.0 },
+        daisy: { x: 6.2, y: 2.2, z: 4.2 },
+        baker: { x: 24.5, y: 2.2, z: 1.8 },
+        timmy: { x: -16.5, y: 1.8, z: 2.2 },
+        gregory: { x: 0, y: 2.2, z: 9.2 }
       };
       return npcMap[goal.targetId] || null;
     }
 
-    if (goal.targetType === 'bell') return { x: 0, y: 1.8, z: 19.8 };
-    if (goal.targetType === 'noticeboard') return { x: -6.5, y: 1.2, z: 6.2 };
-    if (goal.targetType === 'fountain') return { x: 0, y: 0.8, z: 0 };
-    if (goal.targetType === 'watering_can') return { x: 9.5, y: 0.4, z: 3.8 };
+    // 2. Dog Target
+    if (goal.targetType === 'dog') {
+      const dog = em?.getNPC?.('dog');
+      if (dog?.group) {
+        return { x: dog.group.position.x, y: 1.4, z: dog.group.position.z };
+      }
+      return { x: -22.0, y: 1.4, z: -12.5 };
+    }
+
+    // 3. Notice Board
+    if (goal.targetType === 'noticeboard') {
+      if (ws?.townNoticeBoardGroup) {
+        return { x: ws.townNoticeBoardGroup.position.x, y: 2.2, z: ws.townNoticeBoardGroup.position.z };
+      }
+      return { x: 6.8, y: 2.2, z: 11.2 };
+    }
+
+    // 4. Town Bell
+    if (goal.targetType === 'bell') {
+      if (ws?.townBellGroup) {
+        return { x: ws.townBellGroup.position.x, y: 2.6, z: ws.townBellGroup.position.z };
+      }
+      return { x: 0, y: 2.6, z: 23.6 };
+    }
+
+    // 5. Fountain
+    if (goal.targetType === 'fountain') {
+      if (ws?.fountainGroup) {
+        return { x: ws.fountainGroup.position.x, y: 1.6, z: ws.fountainGroup.position.z };
+      }
+      return { x: 0, y: 1.6, z: 0 };
+    }
+
+    // 6. Watering Can
+    if (goal.targetType === 'watering_can') {
+      if (ws?.wateringCanGroup) {
+        return { x: ws.wateringCanGroup.position.x, y: 0.8, z: ws.wateringCanGroup.position.z };
+      }
+      return { x: 8.2, y: 0.8, z: 5.2 };
+    }
+
+    // 7. Sunflowers (First visible unpicked flower)
     if (goal.targetType === 'flower') {
-      const flowers = [
-        { x: -10.5, y: 0.4, z: 4.0 },
-        { x: 10.5, y: 0.4, z: -4.0 },
-        { x: -5.5, y: 0.4, z: -8.0 }
+      if (ws?.pickableFlowers && ws.pickableFlowers.length > 0) {
+        const unpicked = ws.pickableFlowers.find(f => !f.userData?.isPicked && f.visible);
+        if (unpicked) {
+          return { x: unpicked.position.x, y: 0.9, z: unpicked.position.z };
+        }
+      }
+      const flowerCoords = [
+        { x: 9.5, y: 0.9, z: 6.5 },
+        { x: -9.5, y: 0.9, z: 6.0 },
+        { x: 9.5, y: 0.9, z: -6.5 }
       ];
-      return flowers[(this.flowersPicked || 0) % flowers.length] || flowers[0];
+      return flowerCoords[(this.flowersPicked || 0) % flowerCoords.length] || flowerCoords[0];
     }
-    if (goal.targetType === 'ball') return { x: -18.5, y: 0.3, z: -6.5 };
-    if (goal.targetType === 'dog') return { x: -22.0, y: 0.5, z: -12.5 };
-    if (goal.targetType === 'flour_sack') return { x: -18.5, y: 0.4, z: 2.0 };
-    if (goal.targetType === 'berry_basket') return { x: 23.5, y: 0.4, z: -14.5 };
-    if (goal.targetType === 'watch') return { x: 0, y: 0.8, z: -1.8 };
+
+    // 8. Dog Toy Ball
+    if (goal.targetType === 'ball') {
+      if (ws?.dogBallGroup) {
+        return { x: ws.dogBallGroup.position.x, y: 0.7, z: ws.dogBallGroup.position.z };
+      }
+      return { x: -8.0, y: 0.7, z: 16.0 };
+    }
+
+    // 9. Flour Sack
+    if (goal.targetType === 'flour_sack') {
+      if (ws?.flourSackGroup) {
+        return { x: ws.flourSackGroup.position.x, y: 0.8, z: ws.flourSackGroup.position.z };
+      }
+      return { x: -20.5, y: 0.8, z: 2.8 };
+    }
+
+    // 10. Blueberries Basket
+    if (goal.targetType === 'berry_basket') {
+      if (ws?.berryBasketGroup) {
+        return { x: ws.berryBasketGroup.position.x, y: 0.8, z: ws.berryBasketGroup.position.z };
+      }
+      return { x: 26.5, y: 0.8, z: -6.8 };
+    }
+
+    // 11. Golden Pocket Watch
+    if (goal.targetType === 'watch') {
+      if (ws?.goldenWatchGroup) {
+        return { x: ws.goldenWatchGroup.position.x, y: 1.2, z: ws.goldenWatchGroup.position.z };
+      }
+      return { x: 5.6, y: 1.2, z: 2.2 };
+    }
+
+    // 12. Street Lamps
     if (goal.targetType === 'lamp') {
-      const lamps = [
-        { x: -7, y: 1.5, z: 8 },
-        { x: 7, y: 1.5, z: 8 },
-        { x: -7, y: 1.5, z: -8 },
-        { x: 7, y: 1.5, z: -8 }
+      const lampPositions = [
+        { x: -8, y: 3.8, z: 8 },
+        { x: 8, y: 3.8, z: 8 },
+        { x: 8, y: 3.8, z: -8 },
+        { x: -8, y: 3.8, z: -8 }
       ];
-      const litCount = this.litLamps.filter(Boolean).length;
-      return lamps[litCount % lamps.length] || lamps[0];
+      for (let i = 0; i < this.litLamps.length; i++) {
+        if (!this.litLamps[i]) {
+          return lampPositions[i] || lampPositions[0];
+        }
+      }
+      return lampPositions[0];
     }
-    if (goal.targetType === 'balloon') return { x: 18.5, y: 0.8, z: -16.0 };
-    if (goal.targetType === 'well') return { x: 0, y: 0.8, z: -44.0 };
+
+    // 13. Lost Red Balloon
+    if (goal.targetType === 'balloon') {
+      if (ws?.balloonGroup) {
+        return { x: ws.balloonGroup.position.x, y: 2.5, z: ws.balloonGroup.position.z };
+      }
+      return { x: 18.5, y: 2.5, z: -16.0 };
+    }
+
+    // 14. Boarded Well
+    if (goal.targetType === 'well') {
+      if (ws?.wellGroup) {
+        return { x: ws.wellGroup.position.x, y: 2.2, z: ws.wellGroup.position.z };
+      }
+      return { x: 0, y: 2.2, z: -44.0 };
+    }
 
     return null;
   }

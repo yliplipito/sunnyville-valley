@@ -1372,6 +1372,7 @@ export class WorldScene3D {
     };
 
     this.scene.add(group);
+    this.townBellGroup = group;
     this.interactableObjects.push(group);
   }
 
@@ -1427,6 +1428,7 @@ export class WorldScene3D {
     };
 
     this.scene.add(group);
+    this.townNoticeBoardGroup = group;
     this.interactableObjects.push(group);
     this.collisionObstacles.push({ type: 'cylinder', x: x, z: z, radius: 1.2 });
   }
