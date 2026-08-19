@@ -120,15 +120,21 @@ export class AudioManager {
       };
 
       const baseUrl = (import.meta.env?.BASE_URL || './').replace(/\/$/, '') + '/';
-      const [knockBuf, whisperBuf, bellBuf, waterBuf] = await Promise.all([
+      const [knockBuf, whisperBuf, bellBuf, waterBuf, jumpscareBuf, breathingBuf] = await Promise.all([
         fetchAndDecode(`${baseUrl}audio/knock.mp3`).catch(() => null),
         fetchAndDecode(`${baseUrl}audio/whisper.mp3`).catch(() => null),
         fetchAndDecode(`${baseUrl}audio/bell.mp3`).catch(() => null),
-        fetchAndDecode(`${baseUrl}audio/water_splash.mp3`).catch(() => null)
+        fetchAndDecode(`${baseUrl}audio/water_splash.mp3`).catch(() => null),
+        fetchAndDecode(`${baseUrl}audio/jumpscare.mp3`).catch(() => null),
+        fetchAndDecode(`${baseUrl}audio/heavy_breathing.mp3`).catch(() => null)
       ]);
 
       if (bellBuf) this.bellBuffer = bellBuf;
       if (waterBuf) this.waterSplashBuffer = waterBuf;
+      if (jumpscareBuf) this.jumpscareBuffer = jumpscareBuf;
+      if (breathingBuf) this.heavyBreathingBuffer = breathingBuf;
+
+      this.initBreathingAudio();
 
       if (knockBuf) {
         // Set A: First 3 knocks (0.28s to 1.08s)
@@ -774,11 +780,104 @@ export class AudioManager {
     } catch (e) {}
   }
 
+  initBreathingAudio() {
+    if (!this.ctx) return;
+    try {
+      this.breathingGain = this.ctx.createGain();
+      this.breathingGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+      this.breathingGain.connect(this.masterFilter);
+      this.isBreathingPlaying = false;
+      this.breathingSource = null;
+    } catch (e) {}
+  }
+
+  updateWellProximityBreathing(playerPos, currentStep) {
+    if (!this.ctx || !this.heavyBreathingBuffer || this.isMuted) return;
+
+    const isEndgame = (currentStep >= 33 || (window.currentStage || 0) >= 3);
+    if (!isEndgame || !playerPos) {
+      if (this.breathingGain) {
+        this.breathingGain.gain.setTargetAtTime(0.0, this.ctx.currentTime, 0.4);
+      }
+      return;
+    }
+
+    // Well position is at (0, 0, -44)
+    const wellDist = Math.hypot(playerPos.x, playerPos.z - (-44));
+
+    if (wellDist < 36.0) {
+      if (!this.isBreathingPlaying) {
+        try {
+          this.breathingSource = this.ctx.createBufferSource();
+          this.breathingSource.buffer = this.heavyBreathingBuffer;
+          this.breathingSource.loop = true;
+          this.breathingSource.connect(this.breathingGain);
+          this.breathingSource.start();
+          this.isBreathingPlaying = true;
+        } catch (e) {}
+      }
+
+      // Dynamic volume scaling based on proximity (0.0 at 36m -> 0.85 at 3m)
+      const proximityFactor = Math.max(0.0, Math.min(1.0, (36.0 - wellDist) / 33.0));
+      const targetVol = Math.pow(proximityFactor, 1.1) * 0.85;
+
+      if (this.breathingGain) {
+        this.breathingGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.15);
+      }
+    } else {
+      if (this.breathingGain) {
+        this.breathingGain.gain.setTargetAtTime(0.0, this.ctx.currentTime, 0.4);
+      }
+    }
+  }
+
+  stopBreathingAudio() {
+    if (this.breathingGain && this.ctx) {
+      this.breathingGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+    }
+    if (this.breathingSource) {
+      try { this.breathingSource.stop(); } catch (e) {}
+      this.breathingSource = null;
+    }
+    this.isBreathingPlaying = false;
+  }
+
   playJumpscareRoar() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
+
+    // Immediately silence any breathing audio
+    this.stopBreathingAudio();
+
+    // 1. Play the authentic audio sample from Downloads if available
+    if (this.jumpscareBuffer) {
+      try {
+        const source = this.ctx.createBufferSource();
+        source.buffer = this.jumpscareBuffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(1.0, t);
+        source.connect(gain);
+        gain.connect(this.masterGain);
+        source.start(t);
+
+        // Subwoofer Earthquake Punch
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(65, t);
+        sub.frequency.exponentialRampToValueAtTime(18, t + 0.85);
+        subGain.gain.setValueAtTime(0.85, t);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+        sub.connect(subGain);
+        subGain.connect(this.masterGain);
+        sub.start(t);
+        sub.stop(t + 0.95);
+        return;
+      } catch (e) {}
+    }
+
     try {
-      // 1. Deep Subwoofer Earthquake Impact (65Hz -> 18Hz)
+      // Fallback: Multi-layer synthesized roar
       const sub = this.ctx.createOscillator();
       const subGain = this.ctx.createGain();
       sub.type = 'sine';
@@ -791,7 +890,6 @@ export class AudioManager {
       sub.start(t);
       sub.stop(t + 1.25);
 
-      // 2. Frequency-Modulated Alien / Screaming Void Formants (Dual Carrier & Modulator)
       const carrier = this.ctx.createOscillator();
       const modulator = this.ctx.createOscillator();
       const modGain = this.ctx.createGain();
@@ -827,7 +925,6 @@ export class AudioManager {
       modulator.stop(t + 1.25);
       carrier.stop(t + 1.25);
 
-      // 3. Piercing High Tinnitus Shepard Needle Tone (5.6kHz -> 7.4kHz)
       const ringOsc = this.ctx.createOscillator();
       const ringGain = this.ctx.createGain();
       ringOsc.type = 'sine';
@@ -840,26 +937,6 @@ export class AudioManager {
       ringGain.connect(this.masterGain);
       ringOsc.start(t);
       ringOsc.stop(t + 1.3);
-
-      // 4. Heavy Splintering Impact Noise Burst
-      const bSize = Math.floor(this.ctx.sampleRate * 0.85);
-      const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.16));
-      }
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      const nFilter = this.ctx.createBiquadFilter();
-      nFilter.type = 'lowpass';
-      nFilter.frequency.setValueAtTime(2200, t);
-      const nGain = this.ctx.createGain();
-      nGain.gain.setValueAtTime(0.65, t);
-      nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
-      noise.connect(nFilter);
-      nFilter.connect(nGain);
-      nGain.connect(this.masterGain);
-      noise.start(t);
     } catch (e) {}
   }
 

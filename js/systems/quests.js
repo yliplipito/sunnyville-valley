@@ -1000,9 +1000,7 @@ export class QuestManager {
 
   inspectWell() {
     if (this.currentStep >= 34) {
-      if (window.scareManager) {
-        window.scareManager.triggerFullEndingClimax();
-      }
+      this.hud.showToast("Hold [E] to pry open the heavy wooden planks! 🕳️");
     } else {
       this.hud.showToast("An old boarded stone well. A gentle draft rises from below. 🕳️");
     }

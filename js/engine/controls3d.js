@@ -59,11 +59,19 @@ export class Controls3D {
     this.raycaster.far = 9.0;
     this.rayOrigin = new THREE.Vector2(0, 0);
     this.hoveredObject = null;
+    this.isHoldingE = false;
 
     this.initEventListeners();
   }
 
   initEventListeners() {
+    document.addEventListener('mousedown', (e) => {
+      if (e.button === 0) this.isHoldingE = true;
+    });
+    document.addEventListener('mouseup', (e) => {
+      if (e.button === 0) this.isHoldingE = false;
+    });
+
     this.domElement.addEventListener('click', () => {
       if (!this.isLocked && !window.inDialogue && !window.inNightmareEnding && !window.isPaused) {
         try {
@@ -72,7 +80,8 @@ export class Controls3D {
         return;
       }
 
-      if (this.isLocked && this.hoveredObject && !window.inDialogue && window.onInteract) {
+      const isWellOnClimax = this.hoveredObject?.userData?.type === 'well' && (window.questManager?.currentStep || 0) >= 34;
+      if (this.isLocked && this.hoveredObject && !window.inDialogue && !isWellOnClimax && window.onInteract) {
         const timeSinceClose = Date.now() - (window.lastDialogueClosedTime || 0);
         if (timeSinceClose > 300) {
           window.onInteract(this.hoveredObject);
@@ -147,9 +156,11 @@ export class Controls3D {
         }
         break;
       case 'KeyE':
+        this.isHoldingE = true;
         const modalOpen = !document.getElementById('notice-board-modal')?.classList.contains('hidden');
         const timeSinceCloseE = Date.now() - (window.lastDialogueClosedTime || 0);
-        if (this.hoveredObject && timeSinceCloseE > 300 && !modalOpen && window.onInteract) {
+        const isWellOnClimax = this.hoveredObject?.userData?.type === 'well' && (window.questManager?.currentStep || 0) >= 34;
+        if (this.hoveredObject && timeSinceCloseE > 300 && !modalOpen && !isWellOnClimax && window.onInteract) {
           window.onInteract(this.hoveredObject);
         }
         break;
@@ -177,6 +188,9 @@ export class Controls3D {
       case 'ShiftLeft':
       case 'ShiftRight':
         this.isSprinting = false;
+        break;
+      case 'KeyE':
+        this.isHoldingE = false;
         break;
     }
   }

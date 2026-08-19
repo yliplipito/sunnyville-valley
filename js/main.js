@@ -36,6 +36,7 @@ class GameApp {
 
     this.gameStartTime = Date.now();
     this.isNightmareEnding = false;
+    this.wellHoldProgress = 0.0;
 
     this.init();
   }
@@ -315,6 +316,50 @@ class GameApp {
       } else {
         this.hud.updateGoalDistance(null);
       }
+    }
+
+    // Heavy breathing proximity audio when approaching the well
+    if (this.audio && this.camera && this.quests && window.gameStarted) {
+      this.audio.updateWellProximityBreathing(this.camera.position, this.quests.currentStep);
+    }
+
+    // Hold [E] to Unseal Well on Step 34
+    const isAimingAtWell = this.controls?.hoveredObject?.userData?.type === 'well';
+    const isAtWellStep = (this.quests?.currentStep || 0) >= 34;
+    const holdBar = document.getElementById('interact-hold-bar');
+    const holdFill = document.getElementById('interact-hold-fill');
+    const promptText = document.getElementById('interact-text');
+
+    if (isAimingAtWell && isAtWellStep && !window.inNightmareEnding) {
+      if (holdBar) holdBar.classList.remove('hidden');
+      if (promptText) promptText.textContent = 'Hold [E] to Pry Open Boarded Well';
+
+      if (this.controls?.isHoldingE) {
+        this.wellHoldProgress += delta / 1.15; // fills in ~1.15s
+        if (holdFill) holdFill.style.width = Math.min(100, this.wellHoldProgress * 100) + '%';
+
+        // Minor physical effort tremor
+        if (this.camera) {
+          this.camera.position.x += (Math.random() - 0.5) * 0.02 * this.wellHoldProgress;
+          this.camera.position.y += (Math.random() - 0.5) * 0.02 * this.wellHoldProgress;
+        }
+
+        if (this.wellHoldProgress >= 1.0) {
+          this.wellHoldProgress = 0.0;
+          if (holdFill) holdFill.style.width = '0%';
+          if (holdBar) holdBar.classList.add('hidden');
+          this.scares.triggerFullEndingClimax();
+        }
+      } else {
+        if (this.wellHoldProgress > 0) {
+          this.wellHoldProgress = Math.max(0, this.wellHoldProgress - delta * 3.0);
+          if (holdFill) holdFill.style.width = Math.min(100, this.wellHoldProgress * 100) + '%';
+        }
+      }
+    } else {
+      if (holdBar) holdBar.classList.add('hidden');
+      this.wellHoldProgress = 0.0;
+      if (holdFill) holdFill.style.width = '0%';
     }
 
     this.corruption.update(delta);

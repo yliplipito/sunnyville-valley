@@ -382,10 +382,9 @@ export class ScareManager {
     const dialogueBox = document.getElementById('dialogue-box');
     if (dialogueBox) dialogueBox.classList.add('hidden');
 
-    const camera = window.gameCamera;
     const world = window.worldScene;
 
-    // Cut music and initiate deep sub-drone heartbeat
+    // Cut town music immediately
     if (this.audio) {
       try {
         if (this.audio.musicGain && this.audio.ctx) {
@@ -394,100 +393,73 @@ export class ScareManager {
       } catch (e) {}
     }
 
-    // 1. Smooth Cinematic Camera Glide down to Well Mouth (0ms - 2000ms)
-    const startPos = camera ? camera.position.clone() : new THREE.Vector3(0, 1.8, -38);
-    const targetPos = new THREE.Vector3(0, 1.95, -41.2);
-    const targetLook = new THREE.Vector3(0, 1.1, -44.0);
-    const glideStartTime = performance.now();
+    // 1. INSTANT AUDIO JUMPSCARE ROAR
+    if (this.audio) {
+      this.audio.playJumpscareRoar();
+      this.audio.playWoodPlankBreak?.();
+    }
 
-    const glideCam = () => {
-      const elapsed = performance.now() - glideStartTime;
-      const p = Math.min(1.0, elapsed / 2000);
-      const ease = p * p * (3 - 2 * p); // smoothstep
-      if (camera) {
-        camera.position.lerpVectors(startPos, targetPos, ease);
-        camera.lookAt(targetLook);
-      }
-      if (p < 1.0) {
-        requestAnimationFrame(glideCam);
+    // 2. Explode Well Planks in 3D
+    const wellPlanks = world?.wellPlanks || [];
+    if (wellPlanks[0]) {
+      wellPlanks[0].position.set(-3.5, 4.2, 1.4);
+      wellPlanks[0].rotation.set(-1.1, 0.7, -2.0);
+    }
+    if (wellPlanks[1]) {
+      wellPlanks[1].position.set(3.5, 4.2, -1.4);
+      wellPlanks[1].rotation.set(1.1, -0.7, 2.0);
+    }
+
+    // 3. Render terrifying jumpscare face lunging directly at the player
+    if (this.scareCanvas && this.scareCtx) {
+      const w = this.scareCanvas.width;
+      const h = this.scareCanvas.height;
+      this.scareCtx.clearRect(0, 0, w, h);
+      this.drawUncannyPhotorealisticFace(w, h);
+      this.scareCanvas.style.opacity = '1';
+    }
+
+    const scareStartTime = performance.now();
+    const animScare = () => {
+      const now = performance.now();
+      const elapsed = (now - scareStartTime) / 1000;
+      if (elapsed < 1.1) {
+        const progress = elapsed / 1.1;
+        const scale = 0.55 + progress * 1.35 + (Math.random() - 0.5) * 0.1;
+        const jitterX = (Math.random() - 0.5) * 32;
+        const jitterY = (Math.random() - 0.5) * 32;
+        if (this.scareCanvas) {
+          this.scareCanvas.style.transform = `translate(${jitterX}px, ${jitterY}px) scale(${scale.toFixed(3)})`;
+        }
+        requestAnimationFrame(animScare);
       }
     };
-    requestAnimationFrame(glideCam);
+    requestAnimationFrame(animScare);
 
-    this.triggerScreenTwitch(2000);
+    this.triggerScreenTwitch(1100);
 
-    // 2. The Ancient Planks Shatter Apart (at 2000ms)
+    const canvasWrap = document.getElementById('canvas-wrapper');
+    if (canvasWrap) canvasWrap.classList.add('active-twitch');
+
+    // 4. Instant Slam Cut to Pitch Black Silence (after 1100ms scare)
     setTimeout(() => {
-      if (this.audio) {
-        this.audio.playWoodPlankBreak?.();
+      if (this.scareCanvas) {
+        this.scareCanvas.style.opacity = '0';
+        this.scareCanvas.style.transform = 'none';
+      }
+      if (canvasWrap) canvasWrap.classList.remove('active-twitch');
+
+      if (this.blackOverlay) {
+        this.blackOverlay.style.transition = 'none';
+        this.blackOverlay.classList.add('active');
       }
 
-      // Planks violently fly off in 3D
-      const wellPlanks = world?.wellPlanks || [];
-      if (wellPlanks[0]) {
-        wellPlanks[0].position.set(-3.2, 3.8, 1.2);
-        wellPlanks[0].rotation.set(-0.9, 0.6, -1.8);
-      }
-      if (wellPlanks[1]) {
-        wellPlanks[1].position.set(3.2, 3.8, -1.2);
-        wellPlanks[1].rotation.set(0.9, -0.6, 1.8);
-      }
-
-      // 3. Terrifying Void Apparition surges out of the well into screen (at 2700ms)
+      // 5. Reveal Lore Ending Card after 2.4s of quiet void
       setTimeout(() => {
-        if (this.audio) {
-          this.audio.playJumpscareRoar();
+        if (this.endingCard) {
+          this.endingCard.classList.remove('hidden');
         }
-
-        if (this.scareCanvas && this.scareCtx) {
-          const w = this.scareCanvas.width;
-          const h = this.scareCanvas.height;
-          this.scareCtx.clearRect(0, 0, w, h);
-          this.drawUncannyPhotorealisticFace(w, h);
-          this.scareCanvas.style.opacity = '1';
-        }
-
-        const scareStartTime = performance.now();
-        const animScare = () => {
-          const now = performance.now();
-          const elapsed = (now - scareStartTime) / 1000;
-          if (elapsed < 1.15) {
-            const progress = elapsed / 1.15;
-            const scale = 0.40 + progress * 1.35 + (Math.random() - 0.5) * 0.08;
-            const jitterX = (Math.random() - 0.5) * 26;
-            const jitterY = (Math.random() - 0.5) * 26;
-            if (this.scareCanvas) {
-              this.scareCanvas.style.transform = `translate(${jitterX}px, ${jitterY}px) scale(${scale.toFixed(3)})`;
-            }
-            requestAnimationFrame(animScare);
-          }
-        };
-        requestAnimationFrame(animScare);
-
-        const canvasWrap = document.getElementById('canvas-wrapper');
-        if (canvasWrap) canvasWrap.classList.add('active-twitch');
-
-        // 4. Instant Slam Cut to Pitch Black Silence (at 3900ms)
-        setTimeout(() => {
-          if (this.scareCanvas) {
-            this.scareCanvas.style.opacity = '0';
-            this.scareCanvas.style.transform = 'none';
-          }
-          if (canvasWrap) canvasWrap.classList.remove('active-twitch');
-
-          if (this.blackOverlay) {
-            this.blackOverlay.style.transition = 'none';
-            this.blackOverlay.classList.add('active');
-          }
-
-          // 5. Reveal Atmospheric Ending Card after 2.4s of quiet void
-          setTimeout(() => {
-            if (this.endingCard) {
-              this.endingCard.classList.remove('hidden');
-            }
-          }, 2400);
-        }, 1150);
-      }, 700);
-    }, 2000);
+      }, 2400);
+    }, 1100);
   }
 }
