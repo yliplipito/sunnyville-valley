@@ -1200,10 +1200,10 @@ body.is-touch-device .mobile-only {
 /* Virtual Joystick Zone (Left) */
 .joystick-zone {
   position: absolute;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  left: calc(24px + env(safe-area-inset-left, 0px));
-  width: 150px;
-  height: 150px;
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  left: max(16px, env(safe-area-inset-left, 16px));
+  width: 110px;
+  height: 110px;
   pointer-events: auto;
   touch-action: none;
   display: flex;
@@ -1577,76 +1577,8 @@ body.is-touch-device .mobile-only {
   }
 }
 
-/* ===================================================================
-   ROTATE DEVICE SIDEWAYS (LANDSCAPE) PROMPT
-   =================================================================== */
-.rotate-prompt-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  z-index: 999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #FFF;
-  padding: 24px;
-}
-
-@media (max-width: 768px) and (orientation: portrait) {
-  body.is-touch-device .rotate-prompt-overlay,
-  .rotate-prompt-overlay {
-    display: flex;
-  }
-}
-
-.rotate-prompt-box {
-  background: rgba(255, 255, 255, 0.08);
-  border: 2.5px solid #FFD54F;
-  border-radius: 28px;
-  padding: 32px 24px;
-  max-width: 320px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.rotate-icon-anim {
-  font-size: 50px;
-  animation: phoneRotateAnim 2.2s infinite ease-in-out;
-}
-
-@keyframes phoneRotateAnim {
-  0%, 20% { transform: rotate(0deg) scale(1); }
-  50%, 75% { transform: rotate(-90deg) scale(1.1); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-
-.rotate-prompt-box h2 {
-  font-size: 20px;
-  color: #FFD54F;
-  font-weight: 700;
-}
-
-.rotate-prompt-box p {
-  font-size: 14px;
-  color: #E2E8F0;
-  line-height: 1.45;
-}
-
 /* Landscape Phones */
 @media (max-height: 520px) {
-  .rotate-prompt-overlay {
-    display: none !important;
-  }
-
   #hud-overlay {
     padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
   }

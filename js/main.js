@@ -140,20 +140,21 @@ class GameApp {
           this.audio.unlock();
         }
 
-        const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches);
-        if (isTouch) {
+        // Always request pointer lock for desktop
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().then(() => {
+            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+          }).catch(() => {
+            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+          });
+        } else {
+          this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
+        }
+
+        // Activate mobile touch controls only on mobile screens
+        if (window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
           document.body.classList.add('is-touch-device');
           if (mobileControls) mobileControls.classList.remove('hidden');
-        } else {
-          if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().then(() => {
-              this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
-            }).catch(() => {
-              this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
-            });
-          } else {
-            this.canvasWrapper.requestPointerLock?.()?.catch?.(() => {});
-          }
         }
 
         this.hud.showToast("Welcome to Sunnyville! 🎈 Meet Mayor Barnaby at Town Hall!");

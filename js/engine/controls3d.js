@@ -64,7 +64,7 @@ export class Controls3D {
     this.isHoldingE = false;
 
     // Mobile / Touch Controls State
-    this.isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches);
+    this.isTouchDevice = false;
     this.touchJoystick = {
       active: false,
       identifier: null,
@@ -89,9 +89,8 @@ export class Controls3D {
   }
 
   initEventListeners() {
-    // Pointer lock for Desktop
+    // Pointer lock for Desktop - ALWAYS enabled on click
     this.domElement.addEventListener('click', () => {
-      if (this.isTouchDevice) return;
       if (!this.isLocked && !window.inDialogue && !window.inNightmareEnding && !window.isPaused) {
         try {
           this.domElement.requestPointerLock?.()?.catch?.(() => {});
@@ -100,11 +99,10 @@ export class Controls3D {
     });
 
     document.addEventListener('pointerlockchange', () => {
-      if (this.isTouchDevice) return;
       this.isLocked = document.pointerLockElement === this.domElement;
       const resumePill = document.getElementById('resume-pill');
       if (resumePill) {
-        if (!this.isLocked && window.gameStarted && !window.inDialogue && !window.inNightmareEnding && !window.isPaused) {
+        if (!this.isLocked && window.gameStarted && !window.inDialogue && !window.inNightmareEnding && !window.isPaused && !this.touchJoystick.active) {
           resumePill.classList.remove('hidden');
         } else {
           resumePill.classList.add('hidden');
@@ -136,9 +134,17 @@ export class Controls3D {
     const mobileControls = document.getElementById('mobile-controls');
     if (!mobileControls) return;
 
-    if (this.isTouchDevice) {
+    // Detect actual touch interaction
+    const enableTouch = () => {
+      this.isTouchDevice = true;
       document.body.classList.add('is-touch-device');
       mobileControls.classList.remove('hidden');
+    };
+
+    window.addEventListener('touchstart', enableTouch, { once: true, passive: true });
+
+    if (window.innerWidth <= 900 && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+      enableTouch();
     }
 
     const joystickZone = document.getElementById('joystick-zone');
